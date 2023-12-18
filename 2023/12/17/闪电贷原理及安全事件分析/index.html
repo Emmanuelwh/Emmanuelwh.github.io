@@ -22,27 +22,27 @@
     var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="摘要：几个月后，对价格操纵的深度理解">
+  <meta name="description" content="摘要：闪电贷原理及安全事件示例分析">
 <meta property="og:type" content="article">
-<meta property="og:title" content="价格操纵攻击再理解">
-<meta property="og:url" content="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:title" content="闪电贷原理及安全事件分析">
+<meta property="og:url" content="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="来自门头沟学院的Emmanuel">
-<meta property="og:description" content="摘要：几个月后，对价格操纵的深度理解">
+<meta property="og:description" content="摘要：闪电贷原理及安全事件示例分析">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162145635.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162153491.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171136385.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162201816.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171137995.png">
-<meta property="article:published_time" content="2023-12-16T13:34:53.000Z">
-<meta property="article:modified_time" content="2023-12-17T03:50:54.901Z">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png">
+<meta property="article:published_time" content="2023-12-17T09:50:38.000Z">
+<meta property="article:modified_time" content="2023-12-18T03:34:53.399Z">
 <meta property="article:author" content="Emmanuel">
 <meta property="article:tag" content="区块链安全">
 <meta property="article:tag" content="Defi安全">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162145635.png">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png">
 
-<link rel="canonical" href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">
+<link rel="canonical" href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
 
 <script id="page-configurations">
@@ -55,7 +55,7 @@
   };
 </script>
 
-  <title>价格操纵攻击再理解 | 来自门头沟学院的Emmanuel</title>
+  <title>闪电贷原理及安全事件分析 | 来自门头沟学院的Emmanuel</title>
   
 
 
@@ -208,7 +208,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/hometown.jpg">
@@ -221,7 +221,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          价格操纵攻击再理解
+          闪电贷原理及安全事件分析
         </h1>
 
         <div class="post-meta">
@@ -231,14 +231,14 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: 2023-12-16 21:34:53" itemprop="dateCreated datePublished" datetime="2023-12-16T21:34:53+08:00">2023-12-16</time>
+              <time title="Created: 2023-12-17 17:50:38" itemprop="dateCreated datePublished" datetime="2023-12-17T17:50:38+08:00">2023-12-17</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-12-17 11:50:54" itemprop="dateModified" datetime="2023-12-17T11:50:54+08:00">2023-12-17</time>
+                <time title="Modified: 2023-12-18 11:34:53" itemprop="dateModified" datetime="2023-12-18T11:34:53+08:00">2023-12-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -263,16 +263,16 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.1k</span>
+              <span>1.7k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>2 mins.</span>
+              <span>3 mins.</span>
             </span>
-            <div class="post-description">摘要：几个月后，对价格操纵的深度理解</div>
+            <div class="post-description">摘要：闪电贷原理及安全事件示例分析</div>
 
         </div>
       </header>
@@ -283,64 +283,65 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本文的主要参考是METATRUST的捕鲸船分享，链接如下：</p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=czyajRIHYlg">MetaTrust价格操纵攻击分享</a></p>
-<h2 id="价格操纵的来源："><a href="#价格操纵的来源：" class="headerlink" title="价格操纵的来源："></a>价格操纵的来源：</h2><p>区块链世界中，为保持所有节点的共识一致，区块链阉割了每个节点独立获取链外信息的能力</p>
-<p>区块链想获取类似外界的价格信息，只有两种方式：</p>
+        <p>本文主要参考有：</p>
+<p>[捕鲸船的分享](<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=_1dK61Qnv38">闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com)</a>)</p>
+<p>[SharkTeam系列文章–闪电贷]([闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn)](<a target="_blank" rel="noopener" href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
+<h2 id="什么是区块链上的闪电贷："><a href="#什么是区块链上的闪电贷：" class="headerlink" title="什么是区块链上的闪电贷："></a>什么是区块链上的闪电贷：</h2><p><code>闪电贷：</code> 最初的目的是在区块链上实现，允许用户在不提供任何东西作为抵押的情况下进行借款。</p>
+<p>如何让真正实现闪电贷这一功能，依靠区块链上交易的原子性，让闪电贷的借贷和偿还在同一交易中完成，如果没有完成相应的偿还，则回退整个交易；</p>
+<p>为防止闪电贷在Defi中的滥用，每次闪电贷还款的时候需要支持贷款金额的贷款费用，如0.09%，否则也将回退整个交易。</p>
+<p>Aave最初提出闪电贷的概念是为了想服务于金融业产品开发者群体，让更多的开发人员在无需资金的情况下，使用闪电贷创建再融资工具或套利工具，构建金融产品，降低开发门槛。（查了一圈找到的比较合理的答案）</p>
+<p>但目前闪电贷被大量滥用与资产间套利。</p>
+<h2 id="闪电贷具体实现示例："><a href="#闪电贷具体实现示例：" class="headerlink" title="闪电贷具体实现示例："></a>闪电贷具体实现示例：</h2><p>常见的闪电贷平台：<code>Uniswap、Aave、Compound、MakerDAO、dYdX</code>等</p>
+<p>存在闪电贷和闪电兑的区别：需不需要偿还相同的资产。</p>
+<p>现有的闪电贷大多都是乐观转账，在借贷函数的实现的，先将借贷的代币转给借贷者，随后回调借贷者的函数，借贷者进行他的操作，最后在借贷函数结束前，必须还清借贷金额以及相应的手续费，否则交易回退</p>
+<h3 id="Aave-v2"><a href="#Aave-v2" class="headerlink" title="Aave_v2"></a>Aave_v2</h3><ul>
+<li><p>检查闪电贷的代币数量，计算手续费，协议费等</p>
+</li>
+<li><p>进行乐观转账，将代币转到用户的地址中</p>
+</li>
+<li><p>回调用户的excuteOperation函数，用户自己来进行套利操作，aave_v1在函数的最后需要进行相应的还款，aave_v2不需要立刻还款，但需要向借贷合约进行相应的授权。</p>
+</li>
+<li><p>v1检查还款金额（合约借贷前余额+手续费），v2借贷合约调用safetransform函数自己进行相应的转账，实现对应的还款。</p>
+<p>下图主要为aave_v1版本的实现</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png" alt="image.png"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png" alt="image.png"></p>
+</li>
+</ul>
+<h3 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap_v2"></a>Uniswap_v2</h3><p>uniswap其也提供闪电贷的功能，在v2版本中其主要是通过swap函数实现闪电贷</p>
+<p>闪电贷其检测是否还款的原理，是根据自动做市商AMM原理，进行k值检验</p>
+<p>可以粗略的理解uniswap，其代币的pair对是满足<br>$$<br>x_1*x_2 &#x3D; k<br>$$</p>
+<p>最后的k值校验只要满足：</p>
+<p>$$<br>(balance^{‘}_1-fee)*(balance^{‘}_0-fee) \ge k<br>$$<br>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
+<p>从上式我们不难看出，在uniswap中还款，我们不一定需要还同一种资产，可以换相应pair对的资产也可。</p>
 <ul>
-<li>通过实体类似Chainlink主动喂价，不断地将价格数据发布到链上</li>
-<li>直接通过某个智能合约中存储的参数，如uniswap等</li>
+<li>进行相关借款的检验</li>
+<li>进行乐观转账</li>
+<li>回调借贷者的uniswapV2call函数，进行相应的套利操作，并在函数的最后实现还款</li>
+<li>k值校验，判断是否还款</li>
 </ul>
-<p>举例：这是想获得的WETH价格，即为外部数据</p>
-<p><code>getReserves()</code>请求ETH价格，金融模型计算返回对应的值</p>
-<p>这里如果通过闪电贷，如果金融模型错误计算的话，计算出的WETH就很可能出现问题</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162145635.png" alt="image-20231216214431185"></p>
-<h2 id="什么是价格操纵攻击："><a href="#什么是价格操纵攻击：" class="headerlink" title="什么是价格操纵攻击："></a>什么是价格操纵攻击：</h2><p>价格操纵攻击是指通过<code>操控市场的买卖行为（操控流动性池或地址余额）</code>，<code>人为地影响产品或资产价格</code>，以谋取不正当利益</p>
-<p>价格操纵的四要素：</p>
+<p>其闪电贷其余步骤，与aave相似，唯一不同的是，uniswap是将对应的还款在uniswapV2call函数中，直接转给相应的借贷合约</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png" alt="image.png"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png" alt="image.png"></p>
+<h2 id="闪电贷的攻击类型"><a href="#闪电贷的攻击类型" class="headerlink" title="闪电贷的攻击类型"></a>闪电贷的攻击类型</h2><ul>
+<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见[价格操纵文章](<a href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io)</a>)</li>
+<li>一些项目在抵押或其它过程中会产生瞬时奖励，利用闪电贷获得大额奖励</li>
+<li>项目中存在其它逻辑漏洞，利用闪电贷大的资金量发大套利空间</li>
+</ul>
+<h2 id="DFX攻击事件分析"><a href="#DFX攻击事件分析" class="headerlink" title="DFX攻击事件分析"></a>DFX攻击事件分析</h2><p>漏洞的主要原因是主要有两个：</p>
 <ul>
-<li>市场力量的不对等：通过闪电贷行为拥有大量的资金</li>
-<li>买卖行为的操纵：大额的代币兑换，破坏市场机制（市场的流动性）</li>
-<li>恶意影响价格：资产价格计算错误（脆弱的询价机制）</li>
-<li>谋取不正当利益：出现异常数量的奖励或抵押品</li>
+<li><p>闪电贷归还逻辑为闪电贷前后池子中金额的差值</p>
+</li>
+<li><p>但DFX合约的中并未对它的借贷方法和添加流动性方法进行重入限制。通俗来说，就是将借贷的钱抵押到同一个池子中，用户需要还款的闪电贷很少，但却有着大量的LP流动性证明</p>
+</li>
 </ul>
-<h2 id="真实价格操纵攻击案例："><a href="#真实价格操纵攻击案例：" class="headerlink" title="真实价格操纵攻击案例："></a>真实价格操纵攻击案例：</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162153491.png" alt="image-20231216215338496"></p>
-<h3 id="正常流程："><a href="#正常流程：" class="headerlink" title="正常流程："></a>正常流程：</h3><ul>
-<li>用户质押BNB和USDT，获得LP流动性证明；</li>
-<li>随后调用getReward()函数兑换掉LP，获得收益</li>
-<li>移除流动性过程中，会根据池子中BNB代币，兑换成Bunny代币</li>
-</ul>
-<h3 id="攻击流程："><a href="#攻击流程：" class="headerlink" title="攻击流程："></a>攻击流程：</h3><p>分析可见<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/O2j5OyUh2qJZSRhnMD5KTg">慢雾pancake攻击分析</a></p>
+<p>攻击的主要步骤为：</p>
 <ul>
-<li><p>第一笔自己交易获得一定的LP流动性证明</p>
-</li>
-<li><p>用户通过闪电贷兑换了大量的BNB和USDT</p>
-</li>
-<li><p>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</p>
-</li>
-<li><p>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</p>
-</li>
-<li><p>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</p>
-</li>
-<li><p>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></p>
-</li>
-<li><p><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</p>
-</li>
+<li>调用flash函数借贷大量的USDC和XIDR</li>
+<li>后将借到的两种代币在同一个池子中进行抵押</li>
+<li>此时闪电贷前后的池子差，远远小于攻击者借出的资金，攻击者归还很少的资金即可</li>
+<li>但用户抵押的流动性还依然在它手中，移除流动性，获得大量的USDC和XIDR</li>
 </ul>
-<h2 id="漏洞函数"><a href="#漏洞函数" class="headerlink" title="漏洞函数"></a>漏洞函数</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171136385.png" alt="image-20231217113643150"></p>
-<p>getReserve()函数计算得到池中BNByue，后直接用以计算LP相对于BNB的价值</p>
-<p>具体金融模型计算：</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162201816.png" alt="image-20231216220150156"></p>
-<h2 id="如何避免价格操纵攻击："><a href="#如何避免价格操纵攻击：" class="headerlink" title="如何避免价格操纵攻击："></a>如何避免价格操纵攻击：</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171137995.png" alt="image-20231217113754981"></p>
-<p>避免使用脆弱的询价机制，主要有三种方式：</p>
-<ul>
-<li>通过EOA（Chainlink）这样的实体，不断地喂价</li>
-<li>收集多个来源的价格，对不同来源的价格进行加权平均</li>
-<li>对过去一段时间内的价格，进行加权平均（uniswap）</li>
-</ul>
-<blockquote>
-<p>一个敏感操作的变量数据，一定不能依赖于用户易于操控的数据，不然容易产生危险。</p>
-</blockquote>
-<p>污点分析的方式进行漏洞检测</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png" alt="image-20231218112539740"></p>
 
     </div>
 
@@ -356,7 +357,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/" title="价格操纵攻击再理解">https://emmanuelwh.github.io/2023/12/16/价格操纵攻击再理解/</a>
+    <a href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="闪电贷原理及安全事件分析">https://emmanuelwh.github.io/2023/12/17/闪电贷原理及安全事件分析/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
@@ -377,13 +378,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2023/12/16/PolyNetwork%E8%B7%A8%E9%93%BE%E6%B5%81%E7%A8%8B/" rel="prev" title="PolyNetwork跨链流程">
-      <i class="fa fa-chevron-left"></i> PolyNetwork跨链流程
+    <a href="/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/" rel="prev" title="价格操纵攻击再理解">
+      <i class="fa fa-chevron-left"></i> 价格操纵攻击再理解
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="next" title="闪电贷原理及安全事件分析">
-      闪电贷原理及安全事件分析 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -443,7 +441,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E7%9A%84%E6%9D%A5%E6%BA%90%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">价格操纵的来源：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">什么是价格操纵攻击：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%9F%E5%AE%9E%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E6%A1%88%E4%BE%8B%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">真实价格操纵攻击案例：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E5%B8%B8%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">正常流程：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">3.2.</span> <span class="nav-text">攻击流程：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%87%BD%E6%95%B0"><span class="nav-number">4.</span> <span class="nav-text">漏洞函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%EF%BC%9A"><span class="nav-number">5.</span> <span class="nav-text">如何避免价格操纵攻击：</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%8C%BA%E5%9D%97%E9%93%BE%E4%B8%8A%E7%9A%84%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">什么是区块链上的闪电贷：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">闪电贷具体实现示例：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Aave-v2"><span class="nav-number">2.1.</span> <span class="nav-text">Aave_v2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Uniswap-v2"><span class="nav-number">2.2.</span> <span class="nav-text">Uniswap_v2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E7%9A%84%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">闪电贷的攻击类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DFX%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">DFX攻击事件分析</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -701,6 +699,61 @@ window.addEventListener('pjax:success', () => {
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
