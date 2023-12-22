@@ -56,41 +56,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Solidity合约调用详解</title>
-    <url>/2023/12/16/Solidity%E5%90%88%E7%BA%A6%E8%B0%83%E7%94%A8%E8%AF%A6%E8%A7%A3/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>最近在做毕设，在slither的基础上搭建一个检测器，需要对solidity中的合约调用范式进行建模，在remix上对合约调用进行了很多尝试qwq，说多了都是泪，故系统总结一下。<br><code>solidity环境：0.8.13</code></p>
-<h1 id="1-利用call函数进行合约内的调用。"><a href="#1-利用call函数进行合约内的调用。" class="headerlink" title="1. 利用call函数进行合约内的调用。"></a>1. 利用call函数进行合约内的调用。</h1><p>这里我们不考虑利用call函数进行转账的情况，仅仅考虑利用call函数进行合约间的函数调用。<br>call(）函数调用其他合约或者本合约的函数时，需要有对应的函数标识符进行调用。<br>函数标识符通过abi编码函数生成。<br>这里的环境应该，不出意外的话，只支持<code>encodeWithSignature</code>，<code>encodeWithSelector</code></p>
-<ul>
-<li>基本的调用方式：</li>
-</ul>
-<ol>
-<li><code>encodeWithSignature</code><br>对函数签名进行keccak256运算后，取前四字节的结果，之后剩下的字节是encode()的结果，将每个数据填充为32字节<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bytes memory method = abi.encodeWithSignature(&quot;函数名(参数列表)&quot;, 对应的参数列表);</span><br><span class="line">（bool , bytes memory returnData）= address(this) .call(method);</span><br></pre></td></tr></table></figure>
-这里以调用自身合约中的一个函数为例进行说明，给出一个实例，在remix上进行了测试。<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pragma solidity ^0.8.13;</span><br><span class="line">//基合约实现</span><br><span class="line">contract TestFallback &#123;</span><br><span class="line">    string message;</span><br><span class="line">    address add;</span><br><span class="line">    uint inter;</span><br><span class="line">    //构造函数，初始化状态变量message</span><br><span class="line">    constructor() &#123;</span><br><span class="line">        message = &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    fallback() external &#123;</span><br><span class="line">        message = &quot;fallback&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    function testFallbackWithParam(string memory _message) external returns (bytes memory) &#123;</span><br><span class="line">        bytes memory method = abi.encodeWithSignature(&quot;setMsg(uint)&quot;,_message);</span><br><span class="line">        (bool success, bytes memory returnData) = address(this).call(method);</span><br><span class="line"></span><br><span class="line">        require(success, &quot;set fail&quot;);</span><br><span class="line">        return returnData;</span><br><span class="line">    &#125;</span><br><span class="line">    function setAddr(address a1) external &#123;</span><br><span class="line">        add = a1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function getMsg() external view returns (string memory) &#123;</span><br><span class="line">        return message;</span><br><span class="line">    &#125;</span><br><span class="line">    function setMsg(string memory _message) external &#123;</span><br><span class="line">        message = _message;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
-<li><code>encodeWithSelector</code><br> 其与上面十分相似，可以认为前者是后者的简写，因为它会自动对函数签名先进行keccak256运算再取前四字节。而encodeWithSelector不会.<br>  调用方式如下： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bytes memory method = abi.encodeWithSignature(bytes4(keccak256(&quot;函数名(参数列表)&quot;)), 对应的参数列表);</span><br><span class="line">（bool , bytes memory returnData）= address(this) .call(method);</span><br></pre></td></tr></table></figure>
-因为该函数用法和上面一模一样，这里就不贴在remix上的示例了。</li>
-</ol>
-<h1 id="这里分享一个踩过的坑，浪费了我一天时间qwq"><a href="#这里分享一个踩过的坑，浪费了我一天时间qwq" class="headerlink" title="这里分享一个踩过的坑，浪费了我一天时间qwq"></a>这里分享一个踩过的坑，浪费了我一天时间qwq</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">contract B&#123;</span><br><span class="line">    function toeat(address _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里想调用cat合约中的eat()函数，编码的时候函数名(参数列表)写的是<code>eat(uint)</code>。问题就出在这，solidity有时候会默认uint就是uint256，但是在这里它不知道不默认了！！！！！！！！！，调用toeat()函数的时候，它总是会报错，或者调用到fallback函数，很寄<br>所以应该改成：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">contract B&#123;</span><br><span class="line">    function toeat(address _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="2-利用call函数进行合约间的函数调用"><a href="#2-利用call函数进行合约间的函数调用" class="headerlink" title="2.利用call函数进行合约间的函数调用"></a>2.利用call函数进行合约间的函数调用</h1><p>话不多说，直接先上代码，remix上测试过：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pragma solidity ^0.8.13;</span><br><span class="line"></span><br><span class="line">import &quot;./testFallbackImport3.sol&quot; ;</span><br><span class="line"></span><br><span class="line">contract Animal&#123;</span><br><span class="line">    cat c;</span><br><span class="line">    constructor(address _add)&#123;</span><br><span class="line">        c = cat(_add);</span><br><span class="line">    &#125;</span><br><span class="line">    function test()public view returns(uint) &#123; //普通实例化合约调用</span><br><span class="line">       return c.eat(1);</span><br><span class="line">   &#125;</span><br><span class="line">    function test2()external returns(bool) &#123;  //通过call方法调用</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;use(uint256)&quot;,2);</span><br><span class="line">        (bool answer, bytes memory value) = address(c).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125; &#125;</span><br><span class="line"></span><br><span class="line">contract test&#123;</span><br><span class="line">    function toeat (address _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function toeat1(address _add , uint a) public&#123;</span><br><span class="line">        cat chu = cat(_add);</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(chu).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function toeat2(cat _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(_add).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>test合约，三个函数代表了利用call函数进行合约调用的三种方式：<br><code>toeat()</code><br>传入目标合约的地址，生成目标合约的引用，然后调用目标函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function toeat (address _add , uint a) public&#123;</span><br><span class="line">    bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">    (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">    require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><code>toeat1()</code><br>创建合约变量，然后利用它来调用目标函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function toeat1(address _add , uint a) public&#123;</span><br><span class="line">    cat chu = cat(_add);</span><br><span class="line">    bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">    (bool answer, bytes memory value) = address(chu).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">    require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><code>toeat2()</code><br>传入合约变量，利用address类型进行调用</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function toeat2(cat _add , uint a) public&#123;</span><br><span class="line">    bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">    (bool answer, bytes memory value) = address(_add).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">    require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>智能合约</category>
-        <category>以太坊</category>
-      </categories>
-      <tags>
-        <tag>Solidity</tag>
-        <tag>智能合约</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>EGD价格操纵攻击原理分析--phalcon+etherscan</title>
     <url>/2023/12/19/EGD%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h2 id="EGD攻击事件相关信息"><a href="#EGD攻击事件相关信息" class="headerlink" title="EGD攻击事件相关信息"></a>EGD攻击事件相关信息</h2><p>发生在BSC上</p>
@@ -162,23 +127,38 @@
       </tags>
   </entry>
   <entry>
-    <title>Vue+Django前后端交互跨域</title>
-    <url>/2023/12/16/Vue-Django%E5%89%8D%E5%90%8E%E7%AB%AF%E4%BA%A4%E4%BA%92%E8%B7%A8%E5%9F%9F/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="Vue-Django前后端开发"><a href="#Vue-Django前后端开发" class="headerlink" title="Vue+Django前后端开发"></a>Vue+Django前后端开发</h1><p>当我们从零开始利用Vue和Django开发的时候，就会遇到跨域问题，一般来说Vue本地端口可以是8080或者其它，Django的本地端口一般是8000。<br>虽然在Vue中我们用axios 向8000端口发送http请求，但还是收到跨域访问的限制<br>这里分别从前后端说明该如何配置，解决跨域问题</p>
-<h2 id="前端Vue配置"><a href="#前端Vue配置" class="headerlink" title="前端Vue配置"></a>前端Vue配置</h2><h3 id="1-config-index-js"><a href="#1-config-index-js" class="headerlink" title="1. config&#x2F;index.js"></a>1. config&#x2F;index.js</h3><p>基于封装好的axios来进行跨域<br>在前端config&#x2F;index.js中,设置proxy进行跨域</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">devServer</span>:&#123;</span><br><span class="line">      <span class="attr">proxy</span>:&#123;</span><br><span class="line">        <span class="string">&#x27;/api&#x27;</span>:&#123;<span class="comment">//表示拦截以/api开头的请求路径</span></span><br><span class="line">          <span class="attr">target</span>:<span class="string">&#x27;http://127.0.0.1:8000&#x27;</span>,</span><br><span class="line">          <span class="attr">changOrigin</span>: <span class="literal">true</span>,<span class="comment">//是否开启跨域</span></span><br><span class="line">          <span class="attr">pathRewrite</span>:&#123;</span><br><span class="line">            <span class="string">&#x27;^/api&#x27;</span>:<span class="string">&#x27;&#x27;</span> <span class="comment">//重写api，把api变成空字符，因为我们真正请求的路径是没有api的</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="2-axios的封装文件"><a href="#2-axios的封装文件" class="headerlink" title="2. axios的封装文件"></a>2. axios的封装文件</h3><p>建立一个json文件，对axios.create进行封装的时候，将其baseURL设置为api，如下所示</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> http = axios.<span class="title function_">create</span>(&#123;</span><br><span class="line">  <span class="attr">baseURL</span>: <span class="string">&#x27;/api&#x27;</span>,</span><br><span class="line">  <span class="attr">timeout</span>: <span class="number">50000</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-<h2 id="后端Django配置"><a href="#后端Django配置" class="headerlink" title="后端Django配置"></a>后端Django配置</h2><h3 id="1-安装django-cors-headers库"><a href="#1-安装django-cors-headers库" class="headerlink" title="1. 安装django-cors-headers库"></a>1. 安装django-cors-headers库</h3><p>在python环境下直接pip install 进行安装</p>
-<h3 id="2-设置setting-py文件"><a href="#2-设置setting-py文件" class="headerlink" title="2. 设置setting.py文件"></a>2. 设置setting.py文件</h3><p>在setting.py中，在INSTALLED_APPS中添加跨域所需的APP<code>corsheaders</code>,同时在MIDDLEWARE中也添加响应的中间件，并将允许跨域请求的请求方式进行设置，设置为ALL</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">MIDDLEWARE = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders.middleware.CorsMiddleware&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.middleware.common.CommonMiddleware&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">CORS_ORIGIN_ALLOW_ALL = <span class="literal">True</span></span><br><span class="line">CORS_ALLOW_CREDENTIALS = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
-<p>如果前后端都进行了这样的设置之后，应该前后端就能够进行数据的交互了！</p>
+    <title>Solidity合约调用详解</title>
+    <url>/2023/12/16/Solidity%E5%90%88%E7%BA%A6%E8%B0%83%E7%94%A8%E8%AF%A6%E8%A7%A3/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>最近在做毕设，在slither的基础上搭建一个检测器，需要对solidity中的合约调用范式进行建模，在remix上对合约调用进行了很多尝试qwq，说多了都是泪，故系统总结一下。<br><code>solidity环境：0.8.13</code></p>
+<h1 id="1-利用call函数进行合约内的调用。"><a href="#1-利用call函数进行合约内的调用。" class="headerlink" title="1. 利用call函数进行合约内的调用。"></a>1. 利用call函数进行合约内的调用。</h1><p>这里我们不考虑利用call函数进行转账的情况，仅仅考虑利用call函数进行合约间的函数调用。<br>call(）函数调用其他合约或者本合约的函数时，需要有对应的函数标识符进行调用。<br>函数标识符通过abi编码函数生成。<br>这里的环境应该，不出意外的话，只支持<code>encodeWithSignature</code>，<code>encodeWithSelector</code></p>
+<ul>
+<li>基本的调用方式：</li>
+</ul>
+<ol>
+<li><code>encodeWithSignature</code><br>对函数签名进行keccak256运算后，取前四字节的结果，之后剩下的字节是encode()的结果，将每个数据填充为32字节<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bytes memory method = abi.encodeWithSignature(&quot;函数名(参数列表)&quot;, 对应的参数列表);</span><br><span class="line">（bool , bytes memory returnData）= address(this) .call(method);</span><br></pre></td></tr></table></figure>
+这里以调用自身合约中的一个函数为例进行说明，给出一个实例，在remix上进行了测试。<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pragma solidity ^0.8.13;</span><br><span class="line">//基合约实现</span><br><span class="line">contract TestFallback &#123;</span><br><span class="line">    string message;</span><br><span class="line">    address add;</span><br><span class="line">    uint inter;</span><br><span class="line">    //构造函数，初始化状态变量message</span><br><span class="line">    constructor() &#123;</span><br><span class="line">        message = &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    fallback() external &#123;</span><br><span class="line">        message = &quot;fallback&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    function testFallbackWithParam(string memory _message) external returns (bytes memory) &#123;</span><br><span class="line">        bytes memory method = abi.encodeWithSignature(&quot;setMsg(uint)&quot;,_message);</span><br><span class="line">        (bool success, bytes memory returnData) = address(this).call(method);</span><br><span class="line"></span><br><span class="line">        require(success, &quot;set fail&quot;);</span><br><span class="line">        return returnData;</span><br><span class="line">    &#125;</span><br><span class="line">    function setAddr(address a1) external &#123;</span><br><span class="line">        add = a1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function getMsg() external view returns (string memory) &#123;</span><br><span class="line">        return message;</span><br><span class="line">    &#125;</span><br><span class="line">    function setMsg(string memory _message) external &#123;</span><br><span class="line">        message = _message;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></li>
+<li><code>encodeWithSelector</code><br> 其与上面十分相似，可以认为前者是后者的简写，因为它会自动对函数签名先进行keccak256运算再取前四字节。而encodeWithSelector不会.<br>  调用方式如下： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bytes memory method = abi.encodeWithSignature(bytes4(keccak256(&quot;函数名(参数列表)&quot;)), 对应的参数列表);</span><br><span class="line">（bool , bytes memory returnData）= address(this) .call(method);</span><br></pre></td></tr></table></figure>
+因为该函数用法和上面一模一样，这里就不贴在remix上的示例了。</li>
+</ol>
+<h1 id="这里分享一个踩过的坑，浪费了我一天时间qwq"><a href="#这里分享一个踩过的坑，浪费了我一天时间qwq" class="headerlink" title="这里分享一个踩过的坑，浪费了我一天时间qwq"></a>这里分享一个踩过的坑，浪费了我一天时间qwq</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">contract B&#123;</span><br><span class="line">    function toeat(address _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里想调用cat合约中的eat()函数，编码的时候函数名(参数列表)写的是<code>eat(uint)</code>。问题就出在这，solidity有时候会默认uint就是uint256，但是在这里它不知道不默认了！！！！！！！！！，调用toeat()函数的时候，它总是会报错，或者调用到fallback函数，很寄<br>所以应该改成：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">contract B&#123;</span><br><span class="line">    function toeat(address _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="2-利用call函数进行合约间的函数调用"><a href="#2-利用call函数进行合约间的函数调用" class="headerlink" title="2.利用call函数进行合约间的函数调用"></a>2.利用call函数进行合约间的函数调用</h1><p>话不多说，直接先上代码，remix上测试过：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pragma solidity ^0.8.13;</span><br><span class="line"></span><br><span class="line">import &quot;./testFallbackImport3.sol&quot; ;</span><br><span class="line"></span><br><span class="line">contract Animal&#123;</span><br><span class="line">    cat c;</span><br><span class="line">    constructor(address _add)&#123;</span><br><span class="line">        c = cat(_add);</span><br><span class="line">    &#125;</span><br><span class="line">    function test()public view returns(uint) &#123; //普通实例化合约调用</span><br><span class="line">       return c.eat(1);</span><br><span class="line">   &#125;</span><br><span class="line">    function test2()external returns(bool) &#123;  //通过call方法调用</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;use(uint256)&quot;,2);</span><br><span class="line">        (bool answer, bytes memory value) = address(c).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125; &#125;</span><br><span class="line"></span><br><span class="line">contract test&#123;</span><br><span class="line">    function toeat (address _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function toeat1(address _add , uint a) public&#123;</span><br><span class="line">        cat chu = cat(_add);</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(chu).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function toeat2(cat _add , uint a) public&#123;</span><br><span class="line">        bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">        (bool answer, bytes memory value) = address(_add).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">        require(answer, &quot;call failed&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>test合约，三个函数代表了利用call函数进行合约调用的三种方式：<br><code>toeat()</code><br>传入目标合约的地址，生成目标合约的引用，然后调用目标函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function toeat (address _add , uint a) public&#123;</span><br><span class="line">    bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">    (bool answer, bytes memory value) = address(cat(_add)).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">    require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>toeat1()</code><br>创建合约变量，然后利用它来调用目标函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function toeat1(address _add , uint a) public&#123;</span><br><span class="line">    cat chu = cat(_add);</span><br><span class="line">    bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">    (bool answer, bytes memory value) = address(chu).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">    require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>toeat2()</code><br>传入合约变量，利用address类型进行调用</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function toeat2(cat _add , uint a) public&#123;</span><br><span class="line">    bytes memory method =abi.encodeWithSignature(&quot;eat(uint256)&quot;,a);</span><br><span class="line">    (bool answer, bytes memory value) = address(_add).call(method);  //通过bytes32(keccak256(&quot;eat()&quot;指定方法，后面的是参数</span><br><span class="line">    require(answer, &quot;call failed&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>前后端</category>
+        <category>智能合约</category>
+        <category>以太坊</category>
       </categories>
       <tags>
-        <tag>前后端</tag>
+        <tag>Solidity</tag>
+        <tag>智能合约</tag>
       </tags>
   </entry>
   <entry>
@@ -203,6 +183,51 @@
       <tags>
         <tag>服务器</tag>
         <tag>linux工具</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>foundry使用一</title>
+    <url>/2023/12/15/foundry%E4%BD%BF%E7%94%A8(%E4%B8%80)--foundry%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="1-Foundry环境搭建："><a href="#1-Foundry环境搭建：" class="headerlink" title="1. Foundry环境搭建："></a>1. Foundry环境搭建：</h1><h2 id="1-1-拉取Foundry-镜像"><a href="#1-1-拉取Foundry-镜像" class="headerlink" title="1.1 拉取Foundry 镜像"></a>1.1 拉取<code>Foundry</code> 镜像</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">docker pull ghcr.io/foundry-rs/foundry:latest</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-2-以sh形式，创建一个新的容器，并运行对应的容器"><a href="#1-2-以sh形式，创建一个新的容器，并运行对应的容器" class="headerlink" title="1.2 以sh形式，创建一个新的容器，并运行对应的容器"></a>1.2 以sh形式，创建一个新的容器，并运行对应的容器</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker <span class="keyword">run</span><span class="language-bash"> -d -v /local_dir:/docker_dir -it --name new_name image_name /bin/sh</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-d</code>：让容器在后台运行</li>
+<li><code>-v</code>：用以挂载卷</li>
+<li><code>-it</code>：用交互模式运行容器，并分配一个伪终端</li>
+<li><code>--name</code> ：给容器命名</li>
+</ul>
+<h2 id="1-3-查看容器的是否运行，以及容器id"><a href="#1-3-查看容器的是否运行，以及容器id" class="headerlink" title="1.3 查看容器的是否运行，以及容器id"></a>1.3 查看容器的是否运行，以及容器id</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker ps</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-4-进行容器交互界面"><a href="#1-4-进行容器交互界面" class="headerlink" title="1.4 进行容器交互界面"></a>1.4 进行容器交互界面</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker exec -it containerID/name /bin/sh</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>区块链工具</category>
+      </categories>
+      <tags>
+        <tag>区块链安全</tag>
+        <tag>区块链工具</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vue+Django前后端交互跨域</title>
+    <url>/2023/12/16/Vue-Django%E5%89%8D%E5%90%8E%E7%AB%AF%E4%BA%A4%E4%BA%92%E8%B7%A8%E5%9F%9F/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="Vue-Django前后端开发"><a href="#Vue-Django前后端开发" class="headerlink" title="Vue+Django前后端开发"></a>Vue+Django前后端开发</h1><p>当我们从零开始利用Vue和Django开发的时候，就会遇到跨域问题，一般来说Vue本地端口可以是8080或者其它，Django的本地端口一般是8000。<br>虽然在Vue中我们用axios 向8000端口发送http请求，但还是收到跨域访问的限制<br>这里分别从前后端说明该如何配置，解决跨域问题</p>
+<h2 id="前端Vue配置"><a href="#前端Vue配置" class="headerlink" title="前端Vue配置"></a>前端Vue配置</h2><h3 id="1-config-index-js"><a href="#1-config-index-js" class="headerlink" title="1. config&#x2F;index.js"></a>1. config&#x2F;index.js</h3><p>基于封装好的axios来进行跨域<br>在前端config&#x2F;index.js中,设置proxy进行跨域</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">devServer</span>:&#123;</span><br><span class="line">      <span class="attr">proxy</span>:&#123;</span><br><span class="line">        <span class="string">&#x27;/api&#x27;</span>:&#123;<span class="comment">//表示拦截以/api开头的请求路径</span></span><br><span class="line">          <span class="attr">target</span>:<span class="string">&#x27;http://127.0.0.1:8000&#x27;</span>,</span><br><span class="line">          <span class="attr">changOrigin</span>: <span class="literal">true</span>,<span class="comment">//是否开启跨域</span></span><br><span class="line">          <span class="attr">pathRewrite</span>:&#123;</span><br><span class="line">            <span class="string">&#x27;^/api&#x27;</span>:<span class="string">&#x27;&#x27;</span> <span class="comment">//重写api，把api变成空字符，因为我们真正请求的路径是没有api的</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-axios的封装文件"><a href="#2-axios的封装文件" class="headerlink" title="2. axios的封装文件"></a>2. axios的封装文件</h3><p>建立一个json文件，对axios.create进行封装的时候，将其baseURL设置为api，如下所示</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> http = axios.<span class="title function_">create</span>(&#123;</span><br><span class="line">  <span class="attr">baseURL</span>: <span class="string">&#x27;/api&#x27;</span>,</span><br><span class="line">  <span class="attr">timeout</span>: <span class="number">50000</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="后端Django配置"><a href="#后端Django配置" class="headerlink" title="后端Django配置"></a>后端Django配置</h2><h3 id="1-安装django-cors-headers库"><a href="#1-安装django-cors-headers库" class="headerlink" title="1. 安装django-cors-headers库"></a>1. 安装django-cors-headers库</h3><p>在python环境下直接pip install 进行安装</p>
+<h3 id="2-设置setting-py文件"><a href="#2-设置setting-py文件" class="headerlink" title="2. 设置setting.py文件"></a>2. 设置setting.py文件</h3><p>在setting.py中，在INSTALLED_APPS中添加跨域所需的APP<code>corsheaders</code>,同时在MIDDLEWARE中也添加响应的中间件，并将允许跨域请求的请求方式进行设置，设置为ALL</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">MIDDLEWARE = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders.middleware.CorsMiddleware&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.middleware.common.CommonMiddleware&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">CORS_ORIGIN_ALLOW_ALL = <span class="literal">True</span></span><br><span class="line">CORS_ALLOW_CREDENTIALS = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+<p>如果前后端都进行了这样的设置之后，应该前后端就能够进行数据的交互了！</p>
+]]></content>
+      <categories>
+        <category>前后端</category>
+      </categories>
+      <tags>
+        <tag>前后端</tag>
       </tags>
   </entry>
   <entry>
@@ -237,31 +262,6 @@
       <tags>
         <tag>区块链安全</tag>
         <tag>Solidity</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>foundry使用一</title>
-    <url>/2023/12/15/foundry%E4%BD%BF%E7%94%A8(%E4%B8%80)--foundry%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="1-Foundry环境搭建："><a href="#1-Foundry环境搭建：" class="headerlink" title="1. Foundry环境搭建："></a>1. Foundry环境搭建：</h1><h2 id="1-1-拉取Foundry-镜像"><a href="#1-1-拉取Foundry-镜像" class="headerlink" title="1.1 拉取Foundry 镜像"></a>1.1 拉取<code>Foundry</code> 镜像</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">docker pull ghcr.io/foundry-rs/foundry:latest</span><br></pre></td></tr></table></figure>
-
-<h2 id="1-2-以sh形式，创建一个新的容器，并运行对应的容器"><a href="#1-2-以sh形式，创建一个新的容器，并运行对应的容器" class="headerlink" title="1.2 以sh形式，创建一个新的容器，并运行对应的容器"></a>1.2 以sh形式，创建一个新的容器，并运行对应的容器</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker <span class="keyword">run</span><span class="language-bash"> -d -v /local_dir:/docker_dir -it --name new_name image_name /bin/sh</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>-d</code>：让容器在后台运行</li>
-<li><code>-v</code>：用以挂载卷</li>
-<li><code>-it</code>：用交互模式运行容器，并分配一个伪终端</li>
-<li><code>--name</code> ：给容器命名</li>
-</ul>
-<h2 id="1-3-查看容器的是否运行，以及容器id"><a href="#1-3-查看容器的是否运行，以及容器id" class="headerlink" title="1.3 查看容器的是否运行，以及容器id"></a>1.3 查看容器的是否运行，以及容器id</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker ps</span><br></pre></td></tr></table></figure>
-
-<h2 id="1-4-进行容器交互界面"><a href="#1-4-进行容器交互界面" class="headerlink" title="1.4 进行容器交互界面"></a>1.4 进行容器交互界面</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker exec -it containerID/name /bin/sh</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>区块链工具</category>
-      </categories>
-      <tags>
-        <tag>区块链安全</tag>
-        <tag>区块链工具</tag>
       </tags>
   </entry>
   <entry>
@@ -349,94 +349,6 @@
       <tags>
         <tag>区块链安全</tag>
         <tag>区块链工具</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>跨链桥安全事件总结分析</title>
-    <url>/2023/12/16/%E8%B7%A8%E9%93%BE%E6%A1%A5%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E6%80%BB%E7%BB%93%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="跨链桥事件总结分析"><a href="#跨链桥事件总结分析" class="headerlink" title="跨链桥事件总结分析"></a>跨链桥事件总结分析</h1><h2 id="Poly-Network-跨链桥事件"><a href="#Poly-Network-跨链桥事件" class="headerlink" title="Poly Network 跨链桥事件"></a>Poly Network 跨链桥事件</h2><p>Relayer的不完整检验</p>
-<ul>
-<li><p>源链上(Ontology)的relayer没有对上链的交易做语义校验，因此包含修改keeper恶意交易可以被打包到poly chain上</p>
-</li>
-<li><p>目标链上(以太坊)上的relayer虽然对交易做了校验，但是攻击者可以直接调用以太坊上的EthCrossChainManager合约最终调用EthCrossChainData合约完成签名修改</p>
-</li>
-<li><p>攻击者精心够着了能导致hash冲突的函数签名，从而调用<code>putCurEpochConPubKeyBytes</code>完成对签名的修改</p>
-</li>
-</ul>
-<p>见攻击步骤的具体分析</p>
-<p><a href="https://zhuanlan.zhihu.com/p/398941126">Poly Network事件分析</a></p>
-<h2 id="Polygon-Plasma-Bridge漏洞"><a href="#Polygon-Plasma-Bridge漏洞" class="headerlink" title="Polygon Plasma Bridge漏洞"></a>Polygon Plasma Bridge漏洞</h2><p>外部验证+乐观验证 该漏洞可以伪造铸币证明，导致双花攻击</p>
-<p>完整的一次Withdraw交易过程如下：</p>
-<ul>
-<li>用户在Polygon上发起Withdraw交易，该交易会burn掉用户在Polygon的代币；</li>
-<li>经过一个检查点间隔（大约30分钟），等待该withdraw交易被包含到检查点中；</li>
-<li>超过2&#x2F;3的验证者签名后将其提交到以太坊，此时用户调用ERC20PredicateBurnOnly合约中的startExitWithBurntTokens()校验checkpoint是否包含burn交易；</li>
-<li>校验通过，则铸造一个NFT退款凭证发给用户</li>
-<li>用户等待7天挑战期</li>
-<li>调用WithdrawManager.processExits()销毁NFT，并退款给用户</li>
-</ul>
-<p>Polygon为了防止交易重放（双花攻击），使用NFT作为退款凭证，来唯一标识一笔Withdraw交易。但是，由于NFT的ID生成缺陷，造成了攻击者可以构造参数利用同一笔有效的Withdraw交易，生成多个不同ID的NFT，再利用这些NFT进行退款交易，从而实现“双花攻击”。</p>
-<ol>
-<li>addExitToQueue()会调用_addExitToQueue()铸造一个NFT,NFT的ID是由Plasma Bridge的age优先级生成</li>
-<li>WithdrawManager.verifyInclusion()函数对这样的withdraw交易进行校验，并生成对应的age</li>
-<li>交易的校验和age的生成过程，都依赖参数data解码出的<strong>branchMaskBytes</strong></li>
-<li>交易的校验过程调用_getNibbleArray()对<strong>branceMaskBytes</strong> 进行了转码操作。<br><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161139906.png" alt="在这里插入图片描述"></li>
-</ol>
-<p>该函数将对应的HP编码，转成对应的Hex编码。</p>
-<ol start="5">
-<li>如果传入的HP编码后的值b的第一个十六进制位（半个字节）是1或3，就解析第二个十六进制位。否则，就直接忽略第一个字节。</li>
-<li>那么如果攻击者构造一个branchMaskBytes参数，使得其第一个十六进制位不等于1和3，则共有14*16 &#x3D; 224种方式，能够获得相同的转码后的值</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Hex转HP</span><br><span class="line">[6,3,6,1,7,4,10]   Hex编码</span><br><span class="line">[20,63,61,74]  HP编码</span><br><span class="line">HP转Hex</span><br><span class="line">[15,23,45,32,62]  HP编码</span><br><span class="line">[5,2,3,4,5,3,2,6,2]Hex编码</span><br><span class="line">[20，45，76，34]HP编码   [23，...]HP编码</span><br><span class="line">[4，5，7，6，3，4，10]Hex编码</span><br></pre></td></tr></table></figure>
-
-<p><a href="https://zhuanlan.zhihu.com/p/565059008">Polygon事件分析CN</a></p>
-<p><a href="https://medium.com/immunefi/polygon-double-spend-bug-fix-postmortem-2m-bounty-5a1db09db7f1">Polygon事件分析Eng</a></p>
-<h2 id="Meter-io-跨链桥事件"><a href="#Meter-io-跨链桥事件" class="headerlink" title="Meter.io 跨链桥事件"></a>Meter.io 跨链桥事件</h2><p>绕过源链上代币的锁定过程，却获得了代币的锁定证明，进而在目标链铸造资产</p>
-<ul>
-<li>deposit()用于ERC20代币的存款，depositETH()用于WETH&#x2F;WBNB代币的存款。</li>
-<li>Bridge合约提供了两种方法：deposit()和depositETH()用于上述两种代币的存款，但是deposit()并没有阻止WETH&#x2F;WBNB的存款交易，并且存在有着缺陷的逻辑判断。</li>
-</ul>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161139187.png" alt="在这里插入图片描述"></p>
-<p>当<code>tokenAddress</code>不为<code>_wtokenAddress</code>地址时进行 ERC20 代币的销毁或锁定，若为<code>_wtokenAddress</code>则直接跳过该部分处理.</p>
-<p>跨链桥合约中的<code>depositETH</code>函数会将链平台币转为<code>wToken</code>后转至<code>depositHandler</code>地址，所以在<code>depositHandler</code>执行<code>deposit</code>逻辑时，已处理过代币转移，故跳过代币处理逻辑</p>
-<p>但跨链桥合约的<code>deposit</code>函数中并没有处理代币转移及校验，在转由<code>deposiHandler</code>执行<code>deposit</code>时，若<code>data</code>数据构造成满足<code>tokenAddress == _wtokenAddress</code>即可绕过处理</p>
-<p><a href="https://mp.weixin.qq.com/s?__biz=MzU5OTg4MTIxMw==&mid=2247493859&idx=1&sn=49e5634b17d3025326c3ddbc8358d41a&chksm=feac8c71c9db056700954938f2bf41511498faf9b94f169c9512ca22fea9155b019d3c4531b4&scene=21#wechat_redirect">慢雾Meter.io跨链桥分析</a></p>
-<p><a href="https://blog.csdn.net/SierraW/article/details/122857171">Meter.io跨链桥分析</a></p>
-<h2 id="Wormhole-Bridge跨链桥事件"><a href="#Wormhole-Bridge跨链桥事件" class="headerlink" title="Wormhole Bridge跨链桥事件"></a>Wormhole Bridge跨链桥事件</h2><p>利用虚假的签名，在目标链Solana链上mint了12万个WETH。</p>
-<p>Wormhole中引入了Validator角色–即<code>guardians</code> </p>
-<ul>
-<li>Wormhole中没有leader角色，所有的guardians都对其监听到的<code>on-chain event</code>执行相同的计算，同时对<code>Validator Action Approval </code>(VAA)签名。</li>
-<li>若有⅔+的大多数guardian节点使用各自私钥对同一event签名，则在所有链上的Wormhole合约都将自动认为其是有效的，并触发相应的mint&#x2F;burn操作。</li>
-</ul>
-<ol>
-<li>攻击者在Ethereum上向Solana转入0.1ETH</li>
-<li>在Solana上铸造Wormhole ETH的交易触发了Wormhole函数complete_wrapped</li>
-<li>函数的参数之一是<code>transfer message</code> ,<code>guardians</code> 签名的消息，说明铸造的代币和数量</li>
-<li><code>transfer message</code> 是通过触发<code>post_vaa</code>函数创建的，检查<code>guardians</code>的签名来检查消息是否有效</li>
-<li>实际上<code>post_vaa</code>并不检查签名，典型的Solana方式，智能合约通过调用<code>verify_signatures</code>函数创建</li>
-<li><code>verify_signatures</code> 函数的输入之一是Solana内置的<code>system</code>程序，</li>
-<li>在<code>verify_signatures</code>中调用<code>Secp256k1</code>签名验证函数</li>
-<li>Wormhole合约使用函数<code>load_instruction_at</code>来检查<code>Secp256k1</code>函数是否被首先调用</li>
-<li><code>load_instruction_at </code>函数最近被弃用了，因为它不检查它是否针对实际系统地址执行</li>
-<li>攻击者创建自己的账户地址，存储与<code>Instrcutions sysvar</code>相同的数据。</li>
-<li>使用这个伪造的<code>system</code>程序，攻击者可以有效地谎报签名检查程序已被执行，但根本没有检查签名</li>
-</ol>
-<p><a href="https://twitter.com/kelvinfichter/status/1489041221947375616">Wormhole Bridge跨链桥事件</a></p>
-<h2 id="pNetwork跨链协议事件"><a href="#pNetwork跨链协议事件" class="headerlink" title="pNetwork跨链协议事件"></a>pNetwork跨链协议事件</h2><p>绕过锁定的过程，攻击者合约发出对应的<strong>lock event</strong> .错误地提取，处理了恶意的日志事件。</p>
-<ul>
-<li>攻击者部署了一组专门设计的智能合约，来滥用pNetwork节点寻找的peg-out日志事件。</li>
-<li>创建一系列的事件日志，包含合法的peg-out请求，和攻击者合约发出了非法peg-out请求。</li>
-<li>负责提取这些日志事件的Rust代码存在错误，提取并错误地处理了合法和错误的日志。</li>
-</ul>
-<p><a href="https://medium.com/pnetwork/pnetwork-post-mortem-pbtc-on-bsc-exploit-170890c58d5f">pNetwork官方报告</a></p>
-]]></content>
-      <categories>
-        <category>Defi安全</category>
-        <category>跨链桥</category>
-      </categories>
-      <tags>
-        <tag>Defi安全</tag>
-        <tag>跨链桥</tag>
       </tags>
   </entry>
   <entry>
@@ -578,6 +490,94 @@
       <tags>
         <tag>区块链安全</tag>
         <tag>Defi安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>跨链桥安全事件总结分析</title>
+    <url>/2023/12/16/%E8%B7%A8%E9%93%BE%E6%A1%A5%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E6%80%BB%E7%BB%93%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="跨链桥事件总结分析"><a href="#跨链桥事件总结分析" class="headerlink" title="跨链桥事件总结分析"></a>跨链桥事件总结分析</h1><h2 id="Poly-Network-跨链桥事件"><a href="#Poly-Network-跨链桥事件" class="headerlink" title="Poly Network 跨链桥事件"></a>Poly Network 跨链桥事件</h2><p>Relayer的不完整检验</p>
+<ul>
+<li><p>源链上(Ontology)的relayer没有对上链的交易做语义校验，因此包含修改keeper恶意交易可以被打包到poly chain上</p>
+</li>
+<li><p>目标链上(以太坊)上的relayer虽然对交易做了校验，但是攻击者可以直接调用以太坊上的EthCrossChainManager合约最终调用EthCrossChainData合约完成签名修改</p>
+</li>
+<li><p>攻击者精心够着了能导致hash冲突的函数签名，从而调用<code>putCurEpochConPubKeyBytes</code>完成对签名的修改</p>
+</li>
+</ul>
+<p>见攻击步骤的具体分析</p>
+<p><a href="https://zhuanlan.zhihu.com/p/398941126">Poly Network事件分析</a></p>
+<h2 id="Polygon-Plasma-Bridge漏洞"><a href="#Polygon-Plasma-Bridge漏洞" class="headerlink" title="Polygon Plasma Bridge漏洞"></a>Polygon Plasma Bridge漏洞</h2><p>外部验证+乐观验证 该漏洞可以伪造铸币证明，导致双花攻击</p>
+<p>完整的一次Withdraw交易过程如下：</p>
+<ul>
+<li>用户在Polygon上发起Withdraw交易，该交易会burn掉用户在Polygon的代币；</li>
+<li>经过一个检查点间隔（大约30分钟），等待该withdraw交易被包含到检查点中；</li>
+<li>超过2&#x2F;3的验证者签名后将其提交到以太坊，此时用户调用ERC20PredicateBurnOnly合约中的startExitWithBurntTokens()校验checkpoint是否包含burn交易；</li>
+<li>校验通过，则铸造一个NFT退款凭证发给用户</li>
+<li>用户等待7天挑战期</li>
+<li>调用WithdrawManager.processExits()销毁NFT，并退款给用户</li>
+</ul>
+<p>Polygon为了防止交易重放（双花攻击），使用NFT作为退款凭证，来唯一标识一笔Withdraw交易。但是，由于NFT的ID生成缺陷，造成了攻击者可以构造参数利用同一笔有效的Withdraw交易，生成多个不同ID的NFT，再利用这些NFT进行退款交易，从而实现“双花攻击”。</p>
+<ol>
+<li>addExitToQueue()会调用_addExitToQueue()铸造一个NFT,NFT的ID是由Plasma Bridge的age优先级生成</li>
+<li>WithdrawManager.verifyInclusion()函数对这样的withdraw交易进行校验，并生成对应的age</li>
+<li>交易的校验和age的生成过程，都依赖参数data解码出的<strong>branchMaskBytes</strong></li>
+<li>交易的校验过程调用_getNibbleArray()对<strong>branceMaskBytes</strong> 进行了转码操作。<br><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161139906.png" alt="在这里插入图片描述"></li>
+</ol>
+<p>该函数将对应的HP编码，转成对应的Hex编码。</p>
+<ol start="5">
+<li>如果传入的HP编码后的值b的第一个十六进制位（半个字节）是1或3，就解析第二个十六进制位。否则，就直接忽略第一个字节。</li>
+<li>那么如果攻击者构造一个branchMaskBytes参数，使得其第一个十六进制位不等于1和3，则共有14*16 &#x3D; 224种方式，能够获得相同的转码后的值</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Hex转HP</span><br><span class="line">[6,3,6,1,7,4,10]   Hex编码</span><br><span class="line">[20,63,61,74]  HP编码</span><br><span class="line">HP转Hex</span><br><span class="line">[15,23,45,32,62]  HP编码</span><br><span class="line">[5,2,3,4,5,3,2,6,2]Hex编码</span><br><span class="line">[20，45，76，34]HP编码   [23，...]HP编码</span><br><span class="line">[4，5，7，6，3，4，10]Hex编码</span><br></pre></td></tr></table></figure>
+
+<p><a href="https://zhuanlan.zhihu.com/p/565059008">Polygon事件分析CN</a></p>
+<p><a href="https://medium.com/immunefi/polygon-double-spend-bug-fix-postmortem-2m-bounty-5a1db09db7f1">Polygon事件分析Eng</a></p>
+<h2 id="Meter-io-跨链桥事件"><a href="#Meter-io-跨链桥事件" class="headerlink" title="Meter.io 跨链桥事件"></a>Meter.io 跨链桥事件</h2><p>绕过源链上代币的锁定过程，却获得了代币的锁定证明，进而在目标链铸造资产</p>
+<ul>
+<li>deposit()用于ERC20代币的存款，depositETH()用于WETH&#x2F;WBNB代币的存款。</li>
+<li>Bridge合约提供了两种方法：deposit()和depositETH()用于上述两种代币的存款，但是deposit()并没有阻止WETH&#x2F;WBNB的存款交易，并且存在有着缺陷的逻辑判断。</li>
+</ul>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161139187.png" alt="在这里插入图片描述"></p>
+<p>当<code>tokenAddress</code>不为<code>_wtokenAddress</code>地址时进行 ERC20 代币的销毁或锁定，若为<code>_wtokenAddress</code>则直接跳过该部分处理.</p>
+<p>跨链桥合约中的<code>depositETH</code>函数会将链平台币转为<code>wToken</code>后转至<code>depositHandler</code>地址，所以在<code>depositHandler</code>执行<code>deposit</code>逻辑时，已处理过代币转移，故跳过代币处理逻辑</p>
+<p>但跨链桥合约的<code>deposit</code>函数中并没有处理代币转移及校验，在转由<code>deposiHandler</code>执行<code>deposit</code>时，若<code>data</code>数据构造成满足<code>tokenAddress == _wtokenAddress</code>即可绕过处理</p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU5OTg4MTIxMw==&mid=2247493859&idx=1&sn=49e5634b17d3025326c3ddbc8358d41a&chksm=feac8c71c9db056700954938f2bf41511498faf9b94f169c9512ca22fea9155b019d3c4531b4&scene=21#wechat_redirect">慢雾Meter.io跨链桥分析</a></p>
+<p><a href="https://blog.csdn.net/SierraW/article/details/122857171">Meter.io跨链桥分析</a></p>
+<h2 id="Wormhole-Bridge跨链桥事件"><a href="#Wormhole-Bridge跨链桥事件" class="headerlink" title="Wormhole Bridge跨链桥事件"></a>Wormhole Bridge跨链桥事件</h2><p>利用虚假的签名，在目标链Solana链上mint了12万个WETH。</p>
+<p>Wormhole中引入了Validator角色–即<code>guardians</code> </p>
+<ul>
+<li>Wormhole中没有leader角色，所有的guardians都对其监听到的<code>on-chain event</code>执行相同的计算，同时对<code>Validator Action Approval </code>(VAA)签名。</li>
+<li>若有⅔+的大多数guardian节点使用各自私钥对同一event签名，则在所有链上的Wormhole合约都将自动认为其是有效的，并触发相应的mint&#x2F;burn操作。</li>
+</ul>
+<ol>
+<li>攻击者在Ethereum上向Solana转入0.1ETH</li>
+<li>在Solana上铸造Wormhole ETH的交易触发了Wormhole函数complete_wrapped</li>
+<li>函数的参数之一是<code>transfer message</code> ,<code>guardians</code> 签名的消息，说明铸造的代币和数量</li>
+<li><code>transfer message</code> 是通过触发<code>post_vaa</code>函数创建的，检查<code>guardians</code>的签名来检查消息是否有效</li>
+<li>实际上<code>post_vaa</code>并不检查签名，典型的Solana方式，智能合约通过调用<code>verify_signatures</code>函数创建</li>
+<li><code>verify_signatures</code> 函数的输入之一是Solana内置的<code>system</code>程序，</li>
+<li>在<code>verify_signatures</code>中调用<code>Secp256k1</code>签名验证函数</li>
+<li>Wormhole合约使用函数<code>load_instruction_at</code>来检查<code>Secp256k1</code>函数是否被首先调用</li>
+<li><code>load_instruction_at </code>函数最近被弃用了，因为它不检查它是否针对实际系统地址执行</li>
+<li>攻击者创建自己的账户地址，存储与<code>Instrcutions sysvar</code>相同的数据。</li>
+<li>使用这个伪造的<code>system</code>程序，攻击者可以有效地谎报签名检查程序已被执行，但根本没有检查签名</li>
+</ol>
+<p><a href="https://twitter.com/kelvinfichter/status/1489041221947375616">Wormhole Bridge跨链桥事件</a></p>
+<h2 id="pNetwork跨链协议事件"><a href="#pNetwork跨链协议事件" class="headerlink" title="pNetwork跨链协议事件"></a>pNetwork跨链协议事件</h2><p>绕过锁定的过程，攻击者合约发出对应的<strong>lock event</strong> .错误地提取，处理了恶意的日志事件。</p>
+<ul>
+<li>攻击者部署了一组专门设计的智能合约，来滥用pNetwork节点寻找的peg-out日志事件。</li>
+<li>创建一系列的事件日志，包含合法的peg-out请求，和攻击者合约发出了非法peg-out请求。</li>
+<li>负责提取这些日志事件的Rust代码存在错误，提取并错误地处理了合法和错误的日志。</li>
+</ul>
+<p><a href="https://medium.com/pnetwork/pnetwork-post-mortem-pbtc-on-bsc-exploit-170890c58d5f">pNetwork官方报告</a></p>
+]]></content>
+      <categories>
+        <category>Defi安全</category>
+        <category>跨链桥</category>
+      </categories>
+      <tags>
+        <tag>Defi安全</tag>
+        <tag>跨链桥</tag>
       </tags>
   </entry>
   <entry>
