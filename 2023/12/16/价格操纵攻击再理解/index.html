@@ -332,11 +332,16 @@
 </li>
 <li><p>用户通过闪电贷兑换了大量的BNB和USDT</p>
 </li>
-<li>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</li>
-<li>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</li>
-<li>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</li>
-<li>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></li>
-<li><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</li>
+<li><p>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</p>
+</li>
+<li><p>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</p>
+</li>
+<li><p>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</p>
+</li>
+<li><p>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></p>
+</li>
+<li><p><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</p>
+</li>
 </ul>
 <h2 id="漏洞函数"><a href="#漏洞函数" class="headerlink" title="漏洞函数"></a>漏洞函数</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171136385.png" alt="image-20231217113643150"></p>
 <p>getReserve()函数计算得到池中BNByue，后直接用以计算LP相对于BNB的价值</p>
@@ -590,7 +595,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">52 mins.</span>
+    <span title="Reading time total">53 mins.</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

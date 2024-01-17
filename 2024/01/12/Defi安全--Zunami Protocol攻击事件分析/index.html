@@ -312,15 +312,18 @@
       
         <h2 id="1-Zunami攻击事件相关信息"><a href="#1-Zunami攻击事件相关信息" class="headerlink" title="1  Zunami攻击事件相关信息"></a>1  Zunami攻击事件相关信息</h2><p>2023.8.13发生在Ethereum上发生的攻击，存在两个攻击交易，具体信息如下：</p>
 <ul>
-<li>攻击合约地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xa21a2b59d80dc42d332f778cbb9ea127100e5d75#code">Contract Address 攻击合约</a></li>
-<li>攻击者地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x5f4c21c9bb73c8b4a296cc256c0cde324db146df">Zunami Protocol Exploiter</a></li>
-<li>攻击交易hash1：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0x0788ba222970c7c68a738b0e08fb197e669e61f9b226ceec4cab9b85abe8cceb">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></li>
+<li><p>攻击合约地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xa21a2b59d80dc42d332f778cbb9ea127100e5d75#code">Contract Address 攻击合约</a></p>
+</li>
+<li><p>攻击者地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x5f4c21c9bb73c8b4a296cc256c0cde324db146df">Zunami Protocol Exploiter</a></p>
+</li>
+<li><p>攻击交易hash1：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0x0788ba222970c7c68a738b0e08fb197e669e61f9b226ceec4cab9b85abe8cceb">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></p>
+</li>
 <li><p>攻击交易hash2：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0x2aec4fdb2a09ad4269a410f2c770737626fb62c54e0fa8ac25e8582d4b690cca">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></p>
 </li>
 <li><p>phalcon分析调用序列：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/explorer/tx/eth/0x0788ba222970c7c68a738b0e08fb197e669e61f9b226ceec4cab9b85abe8cceb">0x0788ba222970c7c68a | Phalcon Explorer (blocksec.com)</a></p>
 </li>
 </ul>
-<h2 id="2-攻击流程详解"><a href="#2-攻击流程详解" class="headerlink" title="2  攻击流程详解"></a>2  攻击流程详解</h2><h3 id="项目介绍"><a href="#项目介绍" class="headerlink" title="项目介绍"></a>项目介绍</h3><p>Zunami是稳定币投资聚合器，用户给定用ETH/USDC/DAI等稳定币投资Zunami协议；</p>
+<h2 id="2-攻击流程详解"><a href="#2-攻击流程详解" class="headerlink" title="2  攻击流程详解"></a>2  攻击流程详解</h2><h3 id="项目介绍"><a href="#项目介绍" class="headerlink" title="项目介绍"></a>项目介绍</h3><p>Zunami是稳定币投资聚合器，用户给定用ETH&#x2F;USDC&#x2F;DAI等稳定币投资Zunami协议；</p>
 <p>然后Zunami协议会使用用户质押的代币到Curve中高收益的池子进行质押；</p>
 <p>那么为了保证更进一步的收益，Zunami还会把Curve的流动性再次质押到StakeDAO和Convex平台中，吃两波流动性奖励。</p>
 <p>然后把收到的流动性奖励代币(CRV)经过用户的质押比例返回给用户。</p>
@@ -334,12 +337,13 @@
 <li>闪电贷会回调攻击者的<code>uniswapV3FlashCallback</code>函数，回调中攻击者调用Balancer: Vault的flashloan函数，这里可以看一下这里的函数源码</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function flashLoan(</span><br><span class="line">    IFlashLoanRecipient recipient,</span><br><span class="line">    IERC20[] memory tokens,</span><br><span class="line">    uint256[] memory amounts,</span><br><span class="line">    bytes memory userData</span><br><span class="line">) external override nonReentrant whenNotPaused </span><br></pre></td></tr></table></figure>
+
 <p>看了一下源码，其功能无特别之处，就是一个闪电贷函数，不过这个函数可以一次借贷多个代币，用<code>tokens</code>和<code>amounts</code>表示对应的数组，先后乐观转账，后回调攻击者，在进行还款</p>
-<ol>
+<ol start="3">
 <li>在Balancer: Vault的flashloan函数中，会查看对应的余额，进行相应的乐观转账，随后会再次回调到攻击者的<code>receiveFlashLoan</code>函数，此时用户已经通过借贷获得了大量的USDT、USDC以及ETH</li>
 </ol>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121621089.png" alt="image-20240112162057959"></p>
-<ol>
+<ol start="4">
 <li><p>随后攻击者给curve finance，sushiswap以及uniswap上很多factory和router合约地址进行相应的代币授权，并调用Curve Finance: Swap用USDC给池子中添加流动性，获得crvFRAX</p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121711714.png" alt="image-20240112171138441"></p>
 </li>
@@ -348,36 +352,43 @@
 </ol>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121720061.png" alt="image-20240112172018837"></p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121729436.png" alt="image-20240112172948516"></p>
-<ol>
-<li>攻击再次调用exchange()函数，将所有的crvUSD兑换为对应的UZD，最后攻击者拥有4873316数量的UZD,并且将自身的ETH换成对应的SDT，并且将全部的SDT转到<code>MIMCurveStakeDao</code>中（为什么要进行这样一个存款，可能跟攻击行为有关）<img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121927672.png" alt="image-20240112174205177"></li>
+<ol start="6">
+<li><p>攻击再次调用exchange()函数，将所有的crvUSD兑换为对应的UZD，最后攻击者拥有4873316数量的UZD,并且将自身的ETH换成对应的SDT，并且将全部的SDT转到<code>MIMCurveStakeDao</code>中（为什么要进行这样一个存款，可能跟攻击行为有关）<img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121927672.png" alt="image-20240112174205177"></p>
+</li>
 <li><p>随后调用SushiSwap: Router的<code>swapExactTokensForTokens</code>函数，进行代币的交换，攻击者首先将自身的WETH兑换为对应的SDT，随后将步骤2中通过闪电贷获得的USDT全部兑换为WETH</p>
 </li>
 <li><p>攻击者调用UZD合约的cacheAssetPrice()函数,仔细看一下函数源码，获得UZD缓存的资产价格，源码如下：</p>
 </li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function cacheAssetPrice() public virtual &#123;</span><br><span class="line">    _blockCached = block.number;</span><br><span class="line">    uint256 currentAssetPrice = assetPrice();</span><br><span class="line">    if (_assetPriceCached &lt; currentAssetPrice) &#123;</span><br><span class="line">        _assetPriceCached = currentAssetPrice;</span><br><span class="line">        emit CachedAssetPrice(_blockCached, _assetPriceCached);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ol>
+
+<ol start="8">
 <li>可以看出对应的<code>_assetPriceCached</code>的价格是由assetPrice()决定的，进一步阅读函数源码</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function assetPrice() public view override returns (uint256) &#123;</span><br><span class="line">    return priceOracle.lpPrice();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>进一步阅读etherscan上源码，可得priceOracle地址为0x2ffCC661011beC72e1A9524E12060983E74D14ce，查看该合约的<code>lpPrice()</code>函数。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function lpPrice() external view returns (uint256) &#123;</span><br><span class="line">    return (totalHoldings() * 1e18) / totalSupply();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>价格取决于<code>totalHoldings()</code>函数，<code>totalSupply()</code>为ERC标准函数</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function totalHoldings() public view returns (uint256) &#123;</span><br><span class="line">    uint256 length = _poolInfo.length;</span><br><span class="line">    uint256 totalHold = 0;</span><br><span class="line">    for (uint256 pid = 0; pid &lt; length; pid++) &#123;</span><br><span class="line">        totalHold += _poolInfo[pid].strategy.totalHoldings();</span><br><span class="line">    &#125;</span><br><span class="line">    return totalHold;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>这个会取决于每个_poolInfo[pid].strategy的Holdings()函数，这里我们去看<code>MIMCurveStakeDao</code>对应的函数，源码如下所示：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">function totalHoldings() public view virtual returns (uint256) &#123;</span><br><span class="line">    uint256 crvLpHoldings = (vault.liquidityGauge().balanceOf(address(this)) * getCurvePoolPrice()) /</span><br><span class="line">        CURVE_PRICE_DENOMINATOR;</span><br><span class="line"></span><br><span class="line">    uint256 sdtEarned = vault.liquidityGauge().claimable_reward(address(this), address(_config.sdt));</span><br><span class="line">    uint256 amountIn = sdtEarned + _config.sdt.balanceOf(address(this));</span><br><span class="line">    uint256 sdtEarningsInFeeToken = priceTokenByExchange(amountIn, _config.sdtToFeeTokenPath);</span><br><span class="line"></span><br><span class="line">    uint256 crvEarned = vault.liquidityGauge().claimable_reward(address(this), address(_config.crv));</span><br><span class="line">    amountIn = crvEarned + _config.crv.balanceOf(address(this));</span><br><span class="line">    uint256 crvEarningsInFeeToken = priceTokenByExchange(amountIn, _config.crvToFeeTokenPath);</span><br><span class="line"></span><br><span class="line">    uint256 tokensHoldings = 0;</span><br><span class="line">    for (uint256 i = 0; i &lt; 3; i++) &#123;</span><br><span class="line">        tokensHoldings += _config.tokens[i].balanceOf(address(this)) * decimalsMultipliers[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return</span><br><span class="line">        tokensHoldings +</span><br><span class="line">        crvLpHoldings +</span><br><span class="line">        (sdtEarningsInFeeToken + crvEarningsInFeeToken) *</span><br><span class="line">        decimalsMultipliers[feeTokenId];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function priceTokenByExchange(uint256 amountIn, address[] memory exchangePath)</span><br><span class="line">    internal</span><br><span class="line">    view</span><br><span class="line">    returns (uint256)</span><br><span class="line">&#123;</span><br><span class="line">    if (amountIn == 0) return 0;</span><br><span class="line">    uint256[] memory amounts = _config.router.getAmountsOut(amountIn, exchangePath);</span><br><span class="line">    return amounts[amounts.length - 1];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>重点关注sdtEarningsInFeeToken，因为攻击者在此之前，给该合约存入了大量的SDT，仔细看一下<code>priceTokenByExchange()</code>函数</p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122017418.png" alt="image-20240112201732602"></p>
 <p>进一步可以去SushiSwap: Router中查看<code>getAmountsOut()</code>函数，发现其返回值与amountIn正相关，amountIn的值一定程度上取决于该合约当前的SDT余额，而攻击者在此之前给该地址存入了大量的SDT，最终导致sdtEarningsInFeeToken数量过高，CachedAssetPrice价格过高</p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122036619.png" alt="image-20240112203605220"></p>
-<ol>
+<ol start="9">
 <li>随后攻击者调用SushiSwap: Router的<code>swapExactTokensForTokens</code>函数，将SDT转化为WETH，将WETH换成USDT</li>
 <li>随后调用UZD合约中的balanceOf函数，发现其依赖于被操纵的cacheAssetPrice价格，具体如下：</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">function balanceOf(address account) public view virtual override returns (uint256) &#123;</span><br><span class="line">    if (!containRigidAddress(account)) return super.balanceOf(account);</span><br><span class="line"></span><br><span class="line">    return _balancesRigid[account];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function balanceOf(address account) public view virtual override returns (uint256) &#123;</span><br><span class="line">    // don&#x27;t cache price</span><br><span class="line">    return _convertFromNominalCached(_balances[account], Math.Rounding.Down);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function _convertFromNominalWithCaching(uint256 nominal, Math.Rounding rounding)</span><br><span class="line">    internal</span><br><span class="line">    virtual</span><br><span class="line">    returns (uint256 value)</span><br><span class="line">&#123;</span><br><span class="line">    if (nominal == type(uint256).max) return type(uint256).max;</span><br><span class="line">    _cacheAssetPriceByBlock();</span><br><span class="line">    return nominal.mulDiv(assetPriceCached(), DEFAULT_DECIMALS_FACTOR, rounding);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>所以其会错误计算攻击者的UZD余额，这时攻击者进行相应的套利即可</p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122037904.png" alt="image-20240112203656910"></p>
-<ol>
+<ol start="11">
 <li><p>通过Curve.fi Factory Pool的exchange函数，先将错误余额数量的UZD，一部分兑换为crvFRAX，另一部分兑换为crvUSD。</p>
 <p>移除Curve Finance: Swap中的流动性，攻击者获得对应的FRAX和USDC。</p>
 <p>调用exchange函数，将对应的FRAX和crvUSD兑换城USDC</p>
@@ -385,14 +396,14 @@
 </li>
 </ol>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122046516.png" alt="image-20240112204626131"></p>
-<ol>
+<ol start="12">
 <li>调用WETH-USDCpair对的闪电贷，获得大量的WETH，攻击者偿还相应数量的USDC，并偿还第2步中Balancer: Vault闪电贷借贷的WETH和USDC，最后偿还第一步中uniswapV3借贷的USDT</li>
 <li>最后偿还完闪电贷后，攻击者获得资产USDT和WETH，将其全部提取完成攻击。</li>
 </ol>
 <p>再简单看一下另一个攻击交易0x2aec4fdb2a09ad4269a410f2c770737626fb62c54e0fa8ac25e8582d4b690cca</p>
 <ul>
 <li>也是先调用攻击合约，后进行闪电贷，借出WETH，然后通过curve finance将eth兑换成zETH</li>
-<li>将ETH兑换成CRV，存入sEthFraxEthCurveConvex合约中，与上述相同，攻击者账户的zETH余额和sEthFraxEthCurveConvex合约中的CRV余额相关，攻击者通过多次在wETH/CRV在池子中兑换CRV，操纵了CRV的价格和漏洞合约的CRV余额，最终导致CachedAssetPrice变大</li>
+<li>将ETH兑换成CRV，存入sEthFraxEthCurveConvex合约中，与上述相同，攻击者账户的zETH余额和sEthFraxEthCurveConvex合约中的CRV余额相关，攻击者通过多次在wETH&#x2F;CRV在池子中兑换CRV，操纵了CRV的价格和漏洞合约的CRV余额，最终导致CachedAssetPrice变大</li>
 </ul>
 
     </div>
@@ -413,10 +424,10 @@
       <div class="popular-posts-title"><a href="\2023\12\23\Defi安全-Monox攻击事件分析\" rel="bookmark">Defi安全--Monox攻击事件分析--phalcon+etherscan</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\17\闪电贷原理及安全事件分析\" rel="bookmark">闪电贷原理及安全事件分析</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\16\价格操纵攻击再理解\" rel="bookmark">价格操纵攻击再理解</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\16\价格操纵攻击再理解\" rel="bookmark">价格操纵攻击再理解</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\17\闪电贷原理及安全事件分析\" rel="bookmark">闪电贷原理及安全事件分析</a></div>
     </li>
   </ul>
 
@@ -632,7 +643,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">52 mins.</span>
+    <span title="Reading time total">53 mins.</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

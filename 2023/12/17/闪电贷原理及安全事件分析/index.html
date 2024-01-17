@@ -280,7 +280,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.6k</span>
+              <span>1.7k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
@@ -301,8 +301,8 @@
 
       
         <p>本文主要参考有：</p>
-<p><a href="[闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com">捕鲸船的分享</a>](<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=_1dK61Qnv38">https://www.youtube.com/watch?v=_1dK61Qnv38</a>))</p>
-<p><a href="[闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn">SharkTeam系列文章—闪电贷</a>](<a target="_blank" rel="noopener" href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
+<p>[捕鲸船的分享](<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=_1dK61Qnv38">闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com)</a>)</p>
+<p>[SharkTeam系列文章–闪电贷]([闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn)](<a target="_blank" rel="noopener" href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
 <h2 id="什么是区块链上的闪电贷："><a href="#什么是区块链上的闪电贷：" class="headerlink" title="什么是区块链上的闪电贷："></a>什么是区块链上的闪电贷：</h2><p><code>闪电贷：</code> 最初的目的是在区块链上实现，允许用户在不提供任何东西作为抵押的情况下进行借款。</p>
 <p>如何让真正实现闪电贷这一功能，依靠区块链上交易的原子性，让闪电贷的借贷和偿还在同一交易中完成，如果没有完成相应的偿还，则回退整个交易；</p>
 <p>为防止闪电贷在Defi中的滥用，每次闪电贷还款的时候需要支持贷款金额的贷款费用，如0.09%，否则也将回退整个交易。</p>
@@ -326,11 +326,9 @@
 </ul>
 <h3 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap_v2"></a>Uniswap_v2</h3><p>uniswap其也提供闪电贷的功能，在v2版本中其主要是通过swap函数实现闪电贷</p>
 <p>闪电贷其检测是否还款的原理，是根据自动做市商AMM原理，进行k值检验</p>
-<p>可以粗略的理解uniswap，其代币的pair对是满足</p>
-<script type="math/tex; mode=display">
-x_1*x_2 = k</script><p>最后的k值校验只要满足：</p>
-<script type="math/tex; mode=display">
-(balance^{'}_1-fee)*(balance^{'}_0-fee) \ge k</script><p>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
+<p>可以粗略的理解uniswap，其代币的pair对是满足<br>$$<br>x_1*x_2 &#x3D; k<br>$$</p>
+<p>最后的k值校验只要满足：</p>
+<p>$$<br>(balance^{‘}_1-fee)*(balance^{‘}_0-fee) \ge k<br>$$<br>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
 <p>从上式我们不难看出，在uniswap中还款，我们不一定需要还同一种资产，可以换相应pair对的资产也可。</p>
 <ul>
 <li>进行相关借款的检验</li>
@@ -342,7 +340,7 @@ x_1*x_2 = k</script><p>最后的k值校验只要满足：</p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png" alt="image.png"></p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png" alt="image.png"></p>
 <h2 id="闪电贷的攻击类型"><a href="#闪电贷的攻击类型" class="headerlink" title="闪电贷的攻击类型"></a>闪电贷的攻击类型</h2><ul>
-<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见<a href="[价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io">价格操纵文章</a>](<a href="https://emmanuelwh.github.io/2023/12/16/价格操纵攻击再理解/">https://emmanuelwh.github.io/2023/12/16/价格操纵攻击再理解/</a>))</li>
+<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见[价格操纵文章](<a href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io)</a>)</li>
 <li>一些项目在抵押或其它过程中会产生瞬时奖励，利用闪电贷获得大额奖励</li>
 <li>项目中存在其它逻辑漏洞，利用闪电贷大的资金量发大套利空间</li>
 </ul>
@@ -598,7 +596,7 @@ x_1*x_2 = k</script><p>最后的k值校验只要满足：</p>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">52 mins.</span>
+    <span title="Reading time total">53 mins.</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
