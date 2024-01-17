@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--pjax：防止跳转页面音乐暂停-->
+ <script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/hometown.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/hometown.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="摘要：Defi中的价格操纵攻击">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Defi中的价格操纵攻击">
+<meta property="og:url" content="https://emmanuelwh.github.io/2023/12/16/Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB/index.html">
+<meta property="og:site_name" content="来自门头沟学院的Emmanuel">
+<meta property="og:description" content="摘要：Defi中的价格操纵攻击">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161121807.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161121787.png">
+<meta property="article:published_time" content="2023-12-16T03:20:43.000Z">
+<meta property="article:modified_time" content="2023-12-16T03:24:30.448Z">
+<meta property="article:author" content="Emmanuel">
+<meta property="article:tag" content="Defi安全">
+<meta property="article:tag" content="区块链安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161121807.png">
+
+<link rel="canonical" href="https://emmanuelwh.github.io/2023/12/16/Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Defi中的价格操纵攻击 | 来自门头沟学院的Emmanuel</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+
+  <meta name="referrer" content="no-referrer">
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">来自门头沟学院的Emmanuel</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">科研  R&B  网球</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">18</span></a>
+
+  </li>
+        <li class="menu-item menu-item-papersummary">
+
+    <a href="/Paper-summary" rel="section"><i class="fa fa-heartbeat fa-fw"></i>PaperSummary</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/Emmanuelwh" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/16/Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Defi中的价格操纵攻击
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2023-12-16 11:20:43 / Modified: 11:24:30" itemprop="dateCreated datePublished" datetime="2023-12-16T11:20:43+08:00">2023-12-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Defi%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Defi安全</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6/" itemprop="url" rel="index"><span itemprop="name">智能合约</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2023/12/16/Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/12/16/Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>4 mins.</span>
+            </span>
+            <div class="post-description">摘要：Defi中的价格操纵攻击</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Defi中的价格操纵攻击"><a href="#Defi中的价格操纵攻击" class="headerlink" title="Defi中的价格操纵攻击"></a>Defi中的价格操纵攻击</h1><h2 id="直接价格操纵攻击："><a href="#直接价格操纵攻击：" class="headerlink" title="直接价格操纵攻击："></a>直接价格操纵攻击：</h2><p>某些Defi应用程序具有AMM中交易Token的接口，但是，这些接口如果没有得到适当的保护，则攻击者可以滥用这些接口来代表受攻击的Defi应用程序交易Token，会影响Token对的汇率，然后攻击者可以利用自己的Token进行另一笔交易以获取利益。</p>
+<p>Token的价格是通过在AMM中交易Token对来直接操纵的，称为直接价格操纵攻击。‘</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161121807.png" alt="https://pic1.zhimg.com/80/v2-6a170a2bb1213a4bdfd3ad9f98b0bcc8_720w.webp"></p>
+<p>上图显示了一个示例。假设池具有与Token对X和Y相同的初始储备金（1，000）。在正常交易中，根据公式（1），用户可以用10 X获得9.9Y。攻击者可以使用以下三个步骤来执行直接价格操纵攻击。</p>
+<p>步骤一：价格操纵第一阶段，攻击者使用900 X（占池的大部分）来交换TokenY，这破坏了Token对的余额并提高了TokenY在池中的价格。</p>
+<p>步骤二：价格操纵第二阶段，攻击者调用易受攻击的DeFi应用程序的公共界面来出售10X。但是，DeFi应用程序在消耗10 X后只能获得2.75Y。这是因为上一步降低了TokenX的价格。此外，该交易进一步提升了X X的价格。池中TokenY的价格。</p>
+<p>步骤三：成本赎回和获利，攻击者通过反向交易出售473 Y，获得905X。那是因为TokenY的价格已在第二步中提高了。这样，攻击者可以获得5倍的利润。</p>
+<p>具体来说，第一步是增加TokenY的价格，并降低TokenX在池中的价格。根公式（1），这是预期的行为。但是，第二步使易受攻击的DeFi应用程序出售其TokenX，并进一步提高TokenY的价格。这是通过利用易受攻击的DeFi应用程序的公开接口来实现的。结果，攻击者可以通过出售TokenY进行反向交换，并获得更多的X（本示例中为5）。与正常交易（10 X和9.9 Y）相比，受害者DeFi应用损失了7.15 Y（即7.15 = 9.9 – 2.75）。</p>
+<h2 id="间接价格操纵攻击"><a href="#间接价格操纵攻击" class="headerlink" title="间接价格操纵攻击"></a>间接价格操纵攻击</h2><p>一些Defi应用需要出于商业目的使用Token价格，例如，需要一个借款应用程序来计算抵押物的价格，以决定借款人有资格借多少枚Token。如果借款应用程序的价格机制是可操纵的，则借款人所借的Token可能会比抵押品的未偿本金余额更多（即抵押不足）</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161121787.png" alt="https://pic1.zhimg.com/80/v2-9ae2145434d17f36a6c867d59541a16c_720w.webp"></p>
+<p>上面的例子中，借款应用程序使用从AMM中获取的Token对的实时汇率（通过调用AMM的智能合约公开的API）来确定抵押物的价值。假设TokenX和Y之间的初始汇率为1：1。在正常借款情况下，由于借款应用程序的抵押物比率为150％，因此用户将1.5个TokenX存入贷方应用程序作为抵押，并借入1个TokenY。攻击者通过以下步骤发起间接价格操纵攻击：</p>
+<p>步骤一：价格操纵，攻击者用大量的TokenY来交换TokenX，耗尽了池中很大一部分的TokenX，从而为TokenX产生了虚高的价格。由于借用应用程序的价格机制取决于AMM的实时报价，TokenX的价格也会在借款应用中被夸大。</p>
+<p>步骤二：获利，在操纵了TokenX的价格之后，攻击者只需使用TokenX作为抵押品就可以借入TokenY。特别是，他或她可以以与正常借款情况相同的抵押物（1.5 X）借入2 Y而不是1Y。</p>
+<p>步骤三：成本补偿，攻击者只需要通过在AMM池中进行反向交换来赎回价格操纵的成本。这种攻击的根本原因是，脆弱的借款应用利用AMM的实时报价来决定抵押物的价格。结果，攻击者可以在AMM的交易池中进行交易以影响Token价格（步骤I），然后从借款应用借入抵押不足的借款（步骤II）。之后，攻击者进行反向交易以赎回成本（步骤III）</p>
+<h2 id="1-HEALTH-20221020"><a href="#1-HEALTH-20221020" class="headerlink" title="1. HEALTH -20221020"></a>1. HEALTH -20221020</h2><p>不正确的计算</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">function _transfer(address from, address to, uint256 value) private &#123;</span><br><span class="line">        require(value &lt;= _balances[from]);</span><br><span class="line">        require(to != address(0));</span><br><span class="line">        </span><br><span class="line">        uint256 contractTokenBalance = balanceOf(address(this));</span><br><span class="line"></span><br><span class="line">        bool overMinTokenBalance = contractTokenBalance &gt;= numTokensSellToAddToLiquidity;</span><br><span class="line">        if (</span><br><span class="line">            overMinTokenBalance &amp;&amp;</span><br><span class="line">            !inSwapAndLiquify &amp;&amp;</span><br><span class="line">            to == uniswapV2Pair &amp;&amp;</span><br><span class="line">            swapAndLiquifyEnabled</span><br><span class="line">        ) &#123;</span><br><span class="line">            contractTokenBalance = numTokensSellToAddToLiquidity;</span><br><span class="line">            //add liquidity</span><br><span class="line">            swapAndLiquify(contractTokenBalance);</span><br><span class="line">        &#125;</span><br><span class="line">        if (block.timestamp &gt;= pairStartTime.add(jgTime) &amp;&amp; pairStartTime != 0) &#123;</span><br><span class="line">            if (from != uniswapV2Pair) &#123;</span><br><span class="line">                uint256 burnValue = _balances[uniswapV2Pair].mul(burnFee).div(1000);  //vulnerable point</span><br><span class="line">                _balances[uniswapV2Pair] = _balances[uniswapV2Pair].sub(burnValue);  //vulnerable point</span><br><span class="line">                _balances[_burnAddress] = _balances[_burnAddress].add(burnValue);  //vulnerable point</span><br><span class="line">                if (block.timestamp &gt;= pairStartTime.add(jgTime)) &#123;</span><br><span class="line">                    pairStartTime += jgTime;</span><br><span class="line">                &#125;</span><br><span class="line">                emit Transfer(uniswapV2Pair,_burnAddress, burnValue);</span><br><span class="line">                IPancakePair(uniswapV2Pair).sync();</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<p>攻击者可以通过多次转移HEALTH代币，以减少Uniswap对中的HEALTH代币，来执行价格操纵。</p>
+<p>攻击过程：</p>
+<ol>
+<li>攻击合约首先通过闪电贷获得大量WBNB，然后通过PancakeRouter交易所兑换HEALTH。</li>
+<li>查看攻击过程，发现反复调用HEALTH.transfer，销毁了流动池大量的Health代币</li>
+<li>合约调用_transfer时，校验条件太松，销毁流动池中的Health代币，导致Health兑换WBNB价格升高。</li>
+</ol>
+<h2 id="2-ATK-20221012"><a href="#2-ATK-20221012" class="headerlink" title="2. ATK-20221012"></a>2. ATK-20221012</h2><p>balanceOf函数导致的不正确的价格计算</p>
+<p>不安全地使用balanceOf函数，导致很容易收到闪电贷价格操纵的影响</p>
+<p>在AST代币合约中使用getPrice()函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function getPrice() public view returns(uint256)&#123;</span><br><span class="line">        uint256 UDPrice;</span><br><span class="line">        uint256 UDAmount  = balanceOf(_uniswapV2Pair); //vulnerable point</span><br><span class="line">        uint256 USDTAmount = USDT.balanceOf(_uniswapV2Pair); //vulnerable point</span><br><span class="line">        UDPrice = UDAmount.mul(10**18).div(USDTAmount);</span><br><span class="line">        return UDPrice;</span><br></pre></td></tr></table></figure>
+<h2 id="3-RES-Token-20221006"><a href="#3-RES-Token-20221006" class="headerlink" title="3. RES Token-20221006"></a>3. RES Token-20221006</h2><p>不正确的奖励计算</p>
+<p>thisAToB()函数，burn RES代币以提高兑换率</p>
+<p>攻击者进行了多次交换以获得奖励ALL代币，并且burn RES代币以提高兑换率</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">function _transfer(address sender, address recipient, uint256 amount) internal &#123;</span><br><span class="line">        require(!_blacklist[tx.origin], &quot;blacklist!&quot;);</span><br><span class="line">        require(!isContract(recipient) || _whiteContract[recipient] || sender == owner() || recipient == owner(), &quot;no white contract&quot;);</span><br><span class="line">        require(sender != address(0), &quot;BEP20: transfer from the zero address&quot;);</span><br><span class="line">        require(recipient != address(0), &quot;BEP20: transfer to the zero address&quot;);</span><br><span class="line">        require(recipient != address(this), &quot;transfer fail&quot;);</span><br><span class="line">        require(_allToken != address(0), &quot;no set allToken&quot;);</span><br><span class="line">        if(sender != owner() &amp;&amp; recipient != owner() &amp;&amp; IPancakePair(_swapV2Pair).totalSupply() == 0) &#123;</span><br><span class="line">            require(recipient != _swapV2Pair,&quot;no start&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        _balances[sender] = _balances[sender].sub(amount, &quot;BEP20: transfer amount exceeds balance&quot;);</span><br><span class="line">        </span><br><span class="line">        bool skip = _isSkip(sender, recipient);</span><br><span class="line">        TransferType transferType = _transferType(sender, recipient);</span><br><span class="line">        </span><br><span class="line">        uint256 amountRecipient = amount;</span><br><span class="line">        if (!_lockSwapFee &amp;&amp; !skip &amp;&amp; transferType != TransferType.TRANSFER)&#123;</span><br><span class="line">            if (transferType == TransferType.SWAP_BUY)&#123;</span><br><span class="line">                if (_isBuySwap(amount))&#123;</span><br><span class="line">                    amountRecipient = amount.mul(uint256(100).sub(_buyFee)).div(100);</span><br><span class="line">                    _distBuyFee(recipient, amount.mul(_buyFee).div(100)); //Get ALLtoken reward</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;else if(transferType == TransferType.SWAP_SELL)&#123;</span><br><span class="line">                if (_isSellSwap(amount))&#123;</span><br><span class="line">                    amountRecipient = amount.mul(uint256(100).sub(_sellFee)).div(100);</span><br><span class="line">                    _distSellFee(sender, amount.mul(_sellFee).div(100));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        if (transferType == TransferType.TRANSFER)&#123;</span><br><span class="line">            _thisAToB(); //vulnerable point - burn RES</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">function _thisAToB() internal&#123;</span><br><span class="line">        if (_balances[address(this)] &gt; _minAToB)&#123;</span><br><span class="line">            uint256 burnNumber = _balances[address(this)];</span><br><span class="line">            _approve(address(this),_pancakeRouterToken, _balances[address(this)]);</span><br><span class="line">            IPancakeRouter(_pancakeRouterToken).swapExactTokensForTokensSupportingFeeOnTransferTokens(</span><br><span class="line">                _balances[address(this)],</span><br><span class="line">                0,</span><br><span class="line">                _pathAToB,</span><br><span class="line">                address(this),</span><br><span class="line">                block.timestamp);</span><br><span class="line">            _burn(_swapV2Pair, burnNumber);  //vulnerable point</span><br><span class="line">            IPancakePair(_swapV2Pair).sync();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="4-RL-Token-20221001"><a href="#4-RL-Token-20221001" class="headerlink" title="4. RL Token-20221001"></a>4. RL Token-20221001</h2><p>不正确的奖励计算</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">function transferFrom( </span><br><span class="line">        address from,</span><br><span class="line">        address to,</span><br><span class="line">        uint256 amount</span><br><span class="line">    ) public virtual override returns (bool) &#123; </span><br><span class="line">        if (from != address(pancakeSwapV2Pair) &amp;&amp; from != address(pancakeSwapV2Router)) &#123;</span><br><span class="line">            incentive.distributeAirdrop(from);</span><br><span class="line">        &#125;</span><br><span class="line">        if (to != address(pancakeSwapV2Pair) &amp;&amp; to != address(pancakeSwapV2Router)) &#123;</span><br><span class="line">            incentive.distributeAirdrop(to); //trace function</span><br><span class="line">        &#125;</span><br><span class="line">        if (msg.sender != address(pancakeSwapV2Pair) &amp;&amp; msg.sender != address(pancakeSwapV2Router)) &#123;</span><br><span class="line">            incentive.distributeAirdrop(msg.sender); //trace function</span><br><span class="line">        &#125;</span><br><span class="line">        require(allowance(from, msg.sender) &gt;= amount, &quot;insufficient allowance&quot;);</span><br><span class="line">        if (govIDO != address(0)) &#123;</span><br><span class="line">            if (IKBKGovIDO(govIDO).isPriSaler(from)) &#123;</span><br><span class="line">                IKBKGovIDO(govIDO).releasePriSale(from);</span><br><span class="line">            &#125;</span><br><span class="line">            if (IKBKGovIDO(govIDO).isPriSaler(to)) &#123;</span><br><span class="line">                IKBKGovIDO(govIDO).releasePriSale(to);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        //sell</span><br><span class="line">        if (to == address(pancakeSwapV2Pair) &amp;&amp; msg.sender == address(pancakeSwapV2Router)) &#123;</span><br><span class="line">            if (!isCommunityAddress[from]) &#123;</span><br><span class="line">                uint burnAmt = amount / 100;</span><br><span class="line">                _burn(from, burnAmt);</span><br><span class="line">                uint slideAmt = amount * 2 / 100;</span><br><span class="line">                _transfer(from, slideReceiver, slideAmt);</span><br><span class="line">                amount -= (burnAmt + slideAmt);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            if (!isCommunityAddress[from] &amp;&amp; !isCommunityAddress[to]) &#123;</span><br><span class="line">                uint burnAmt = amount / 100;</span><br><span class="line">                amount -= burnAmt;</span><br><span class="line">                _burn(from, burnAmt);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return super.transferFrom(from, to, amount);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">function distributeAirdrop(address user) public override &#123;</span><br><span class="line">        if (block.timestamp &lt; airdropStartTime) &#123;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        updateIndex();</span><br><span class="line">        uint256 rewards = getUserUnclaimedRewards(user); //vulnerable point</span><br><span class="line">        usersIndex[user] = globalAirdropInfo.index;</span><br><span class="line">        if (rewards &gt; 0) &#123;</span><br><span class="line">            uint256 bal = rewardToken.balanceOf(address(this));</span><br><span class="line">            if (bal &gt;= rewards) &#123;</span><br><span class="line">                rewardToken.transfer(user, rewards);</span><br><span class="line">                userUnclaimedRewards[user] = 0;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">function getUserUnclaimedRewards(address user) public view returns (uint256) &#123;</span><br><span class="line">        if (block.timestamp &lt; airdropStartTime) &#123;</span><br><span class="line">            return 0;</span><br><span class="line">        &#125;</span><br><span class="line">        (uint256 newIndex,) = getNewIndex();</span><br><span class="line">        uint256 userIndex = usersIndex[user];</span><br><span class="line">        if (userIndex &gt;= newIndex || userIndex == 0) &#123;</span><br><span class="line">            return userUnclaimedRewards[user];</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">				//vulnerable point, Incorrect Reward calculation. only check balanceof of user without any requirement.</span><br><span class="line">            return userUnclaimedRewards[user] + (newIndex - userIndex) * lpToken.balanceOf(user) / PRECISION;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="5-BXH-20220928"><a href="#5-BXH-20220928" class="headerlink" title="5. BXH -20220928"></a>5. BXH -20220928</h2><p>不正确的奖励计算</p>
+<p>错误地使用getReserves()函数来获取池中的余额，并通过getAmountOut来计算bonus</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">function getITokenBonusAmount( uint256 _pid, uint256 _amountInToken ) public view returns (uint256)&#123;</span><br><span class="line">        PoolInfo storage pool = poolInfo[_pid];</span><br><span class="line"></span><br><span class="line">        (uint112 _reserve0, uint112 _reserve1, ) = IUniswapV2Pair(pool.swapPairAddress).getReserves(); //vulnerable point</span><br><span class="line">        uint256 amountTokenOut = 0; </span><br><span class="line">        uint256 _fee = 0;</span><br><span class="line">        if(IUniswapV2Pair(pool.swapPairAddress).token0() == address(iToken))&#123;</span><br><span class="line">            amountTokenOut = getAmountOut( _amountInToken , _reserve0, _reserve1, _fee); //vulnerable point</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            amountTokenOut = getAmountOut( _amountInToken , _reserve1, _reserve0, _fee); //vulnerable point</span><br><span class="line">        &#125;</span><br><span class="line">        return amountTokenOut;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut, uint256 feeFactor) private pure returns (uint ) &#123;</span><br><span class="line">        require(amountIn &gt; 0, &#x27;UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT&#x27;);</span><br><span class="line">        require(reserveIn &gt; 0 &amp;&amp; reserveOut &gt; 0, &#x27;UniswapV2Library: INSUFFICIENT_LIQUIDITY&#x27;);</span><br><span class="line"></span><br><span class="line">        uint256 feeBase = 10000;</span><br><span class="line"></span><br><span class="line">        uint amountInWithFee = amountIn.mul(feeBase.sub(feeFactor));</span><br><span class="line">        uint numerator = amountInWithFee.mul(reserveOut);</span><br><span class="line">        uint denominator = reserveIn.mul(feeBase).add(amountInWithFee);</span><br><span class="line">        uint amountOut = numerator / denominator;</span><br><span class="line">        return amountOut;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">Related Posts</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\16\价格操纵攻击再理解\" rel="bookmark">价格操纵攻击再理解</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\17\闪电贷原理及安全事件分析\" rel="bookmark">闪电贷原理及安全事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+    </li>
+  </ul>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Emmanuel
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://emmanuelwh.github.io/2023/12/16/Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB/" title="Defi中的价格操纵攻击">https://emmanuelwh.github.io/2023/12/16/Defi中的价格操纵攻击/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Defi%E5%AE%89%E5%85%A8/" rel="tag"># Defi安全</a>
+              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/16/Vue-Django%E5%89%8D%E5%90%8E%E7%AB%AF%E4%BA%A4%E4%BA%92%E8%B7%A8%E5%9F%9F/" rel="prev" title="Vue+Django前后端交互跨域">
+      <i class="fa fa-chevron-left"></i> Vue+Django前后端交互跨域
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/16/Solidity%E5%90%88%E7%BA%A6%E8%B0%83%E7%94%A8%E8%AF%A6%E8%A7%A3/" rel="next" title="Solidity合约调用详解">
+      Solidity合约调用详解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Defi%E4%B8%AD%E7%9A%84%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB"><span class="nav-number">1.</span> <span class="nav-text">Defi中的价格操纵攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">直接价格操纵攻击：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%B4%E6%8E%A5%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB"><span class="nav-number">1.2.</span> <span class="nav-text">间接价格操纵攻击</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-HEALTH-20221020"><span class="nav-number">1.3.</span> <span class="nav-text">1. HEALTH -20221020</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-ATK-20221012"><span class="nav-number">1.4.</span> <span class="nav-text">2. ATK-20221012</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-RES-Token-20221006"><span class="nav-number">1.5.</span> <span class="nav-text">3. RES Token-20221006</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-RL-Token-20221001"><span class="nav-number">1.6.</span> <span class="nav-text">4. RL Token-20221001</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-BXH-20220928"><span class="nav-number">1.7.</span> <span class="nav-text">5. BXH -20220928</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Emmanuel"
+      src="/images/hometown.jpg">
+  <p class="site-author-name" itemprop="name">Emmanuel</p>
+  <div class="site-description" itemprop="description">XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Emmanuelwh" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Emmanuelwh" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/emmanuel-87-70" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;emmanuel-87-70" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/m0_53689197?type=blog" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;m0_53689197?type&#x3D;blog" rel="noopener" target="_blank"><i class="far fa-keyboard fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://music.163.com/#/user/home?id=2071923556" title="Music → https:&#x2F;&#x2F;music.163.com&#x2F;#&#x2F;user&#x2F;home?id&#x3D;2071923556" rel="noopener" target="_blank"><i class="fab fa-itunes-note fa-fw"></i>Music</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <!-- require APlayer -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+        <!-- require MetingJS-->
+        <script src="https://cdn.jsdelivr.net/npm/meting@1.2/dist/Meting.min.js"></script> 
+      <!--网易云-->   
+        <div class="aplayer" 
+          data-id="8940934500" 
+          data-server="netease" 
+          data-type="playlist" 
+          data-fixed="false" 
+          data-autoplay="true" 
+          data-list-folded="false"
+          data-mutex="true"
+          data-order="random" 
+          data-loop="all"
+          data-volume="0.4" 
+          data-theme="#FADFA3" 
+          date-preload="auto" > 
+        </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+
+  </aside>
+
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Emmanuel</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">29k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">52 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//cdn.bootcss.com/valine/1.4.4/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = '';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gAD7uMtmIxpFIANjozCCYSex-gzGzoHsz',
+      appKey     : '7NgcIb6pbECV8SqPakVb2uc1',
+      placeholder: "聊五毛钱的天嘛？|ω･)و ̑̑༉",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+    </div>
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/src/fireworks.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"right","width":250,"height":400,"hOffset":5,"vOffset":50},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body>
+</html>

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--pjax：防止跳转页面音乐暂停-->
+ <script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/hometown.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/hometown.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="摘要：闪电贷原理及安全事件示例分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="闪电贷原理及安全事件分析">
+<meta property="og:url" content="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="来自门头沟学院的Emmanuel">
+<meta property="og:description" content="摘要：闪电贷原理及安全事件示例分析">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png">
+<meta property="article:published_time" content="2023-12-17T09:50:38.000Z">
+<meta property="article:modified_time" content="2023-12-18T06:42:37.477Z">
+<meta property="article:author" content="Emmanuel">
+<meta property="article:tag" content="Defi安全">
+<meta property="article:tag" content="区块链安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png">
+
+<link rel="canonical" href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>闪电贷原理及安全事件分析 | 来自门头沟学院的Emmanuel</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+
+  <meta name="referrer" content="no-referrer">
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">来自门头沟学院的Emmanuel</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">科研  R&B  网球</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">18</span></a>
+
+  </li>
+        <li class="menu-item menu-item-papersummary">
+
+    <a href="/Paper-summary" rel="section"><i class="fa fa-heartbeat fa-fw"></i>PaperSummary</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/Emmanuelwh" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          闪电贷原理及安全事件分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-12-17 17:50:38" itemprop="dateCreated datePublished" datetime="2023-12-17T17:50:38+08:00">2023-12-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-12-18 14:42:37" itemprop="dateModified" datetime="2023-12-18T14:42:37+08:00">2023-12-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Defi%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Defi安全</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>3 mins.</span>
+            </span>
+            <div class="post-description">摘要：闪电贷原理及安全事件示例分析</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要参考有：</p>
+<p><a href="[闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com">捕鲸船的分享</a>](<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=_1dK61Qnv38">https://www.youtube.com/watch?v=_1dK61Qnv38</a>))</p>
+<p><a href="[闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn">SharkTeam系列文章—闪电贷</a>](<a target="_blank" rel="noopener" href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
+<h2 id="什么是区块链上的闪电贷："><a href="#什么是区块链上的闪电贷：" class="headerlink" title="什么是区块链上的闪电贷："></a>什么是区块链上的闪电贷：</h2><p><code>闪电贷：</code> 最初的目的是在区块链上实现，允许用户在不提供任何东西作为抵押的情况下进行借款。</p>
+<p>如何让真正实现闪电贷这一功能，依靠区块链上交易的原子性，让闪电贷的借贷和偿还在同一交易中完成，如果没有完成相应的偿还，则回退整个交易；</p>
+<p>为防止闪电贷在Defi中的滥用，每次闪电贷还款的时候需要支持贷款金额的贷款费用，如0.09%，否则也将回退整个交易。</p>
+<p>Aave最初提出闪电贷的概念是为了想服务于金融业产品开发者群体，让更多的开发人员在无需资金的情况下，使用闪电贷创建再融资工具或套利工具，构建金融产品，降低开发门槛。（查了一圈找到的比较合理的答案）</p>
+<p>但目前闪电贷被大量滥用与资产间套利。</p>
+<h2 id="闪电贷具体实现示例："><a href="#闪电贷具体实现示例：" class="headerlink" title="闪电贷具体实现示例："></a>闪电贷具体实现示例：</h2><p>常见的闪电贷平台：<code>Uniswap、Aave、Compound、MakerDAO、dYdX</code>等</p>
+<p>存在闪电贷和闪电兑的区别：需不需要偿还相同的资产。</p>
+<p>现有的闪电贷大多都是乐观转账，在借贷函数的实现的，先将借贷的代币转给借贷者，随后回调借贷者的函数，借贷者进行他的操作，最后在借贷函数结束前，必须还清借贷金额以及相应的手续费，否则交易回退</p>
+<h3 id="Aave-v2"><a href="#Aave-v2" class="headerlink" title="Aave_v2"></a>Aave_v2</h3><ul>
+<li><p>检查闪电贷的代币数量，计算手续费，协议费等</p>
+</li>
+<li><p>进行乐观转账，将代币转到用户的地址中</p>
+</li>
+<li><p>回调用户的excuteOperation函数，用户自己来进行套利操作，aave_v1在函数的最后需要进行相应的还款，aave_v2不需要立刻还款，但需要向借贷合约进行相应的授权。</p>
+</li>
+<li><p>v1检查还款金额（合约借贷前余额+手续费），v2借贷合约调用safetransform函数自己进行相应的转账，实现对应的还款。</p>
+<p>下图主要为aave_v1版本的实现</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png" alt="image.png"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png" alt="image.png"></p>
+</li>
+</ul>
+<h3 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap_v2"></a>Uniswap_v2</h3><p>uniswap其也提供闪电贷的功能，在v2版本中其主要是通过swap函数实现闪电贷</p>
+<p>闪电贷其检测是否还款的原理，是根据自动做市商AMM原理，进行k值检验</p>
+<p>可以粗略的理解uniswap，其代币的pair对是满足</p>
+<script type="math/tex; mode=display">
+x_1*x_2 = k</script><p>最后的k值校验只要满足：</p>
+<script type="math/tex; mode=display">
+(balance^{'}_1-fee)*(balance^{'}_0-fee) \ge k</script><p>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
+<p>从上式我们不难看出，在uniswap中还款，我们不一定需要还同一种资产，可以换相应pair对的资产也可。</p>
+<ul>
+<li>进行相关借款的检验</li>
+<li>进行乐观转账</li>
+<li>回调借贷者的uniswapV2call函数，进行相应的套利操作，并在函数的最后实现还款</li>
+<li>k值校验，判断是否还款</li>
+</ul>
+<p>其闪电贷其余步骤，与aave相似，唯一不同的是，uniswap是将对应的还款在uniswapV2call函数中，直接转给相应的借贷合约</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png" alt="image.png"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png" alt="image.png"></p>
+<h2 id="闪电贷的攻击类型"><a href="#闪电贷的攻击类型" class="headerlink" title="闪电贷的攻击类型"></a>闪电贷的攻击类型</h2><ul>
+<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见<a href="[价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io">价格操纵文章</a>](<a href="https://emmanuelwh.github.io/2023/12/16/价格操纵攻击再理解/">https://emmanuelwh.github.io/2023/12/16/价格操纵攻击再理解/</a>))</li>
+<li>一些项目在抵押或其它过程中会产生瞬时奖励，利用闪电贷获得大额奖励</li>
+<li>项目中存在其它逻辑漏洞，利用闪电贷大的资金量发大套利空间</li>
+</ul>
+<h2 id="DFX攻击事件分析"><a href="#DFX攻击事件分析" class="headerlink" title="DFX攻击事件分析"></a>DFX攻击事件分析</h2><p>漏洞的主要原因是主要有两个：</p>
+<ul>
+<li><p>闪电贷归还逻辑为闪电贷前后池子中金额的差值</p>
+</li>
+<li><p>但DFX合约的中并未对它的借贷方法和添加流动性方法进行重入限制。通俗来说，就是将借贷的钱抵押到同一个池子中，用户需要还款的闪电贷很少，但却有着大量的LP流动性证明</p>
+</li>
+</ul>
+<p>攻击的主要步骤为：</p>
+<ul>
+<li>调用flash函数借贷大量的USDC和XIDR</li>
+<li>后将借到的两种代币在同一个池子中进行抵押</li>
+<li>此时闪电贷前后的池子差，远远小于攻击者借出的资金，攻击者归还很少的资金即可</li>
+<li>但用户抵押的流动性还依然在它手中，移除流动性，获得大量的USDC和XIDR</li>
+</ul>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png" alt="image-20231218112539740"></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">Related Posts</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\16\价格操纵攻击再理解\" rel="bookmark">价格操纵攻击再理解</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+    </li>
+  </ul>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Emmanuel
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="闪电贷原理及安全事件分析">https://emmanuelwh.github.io/2023/12/17/闪电贷原理及安全事件分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Defi%E5%AE%89%E5%85%A8/" rel="tag"># Defi安全</a>
+              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/" rel="prev" title="价格操纵攻击再理解">
+      <i class="fa fa-chevron-left"></i> 价格操纵攻击再理解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/19/EGD%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" rel="next" title="EGD价格操纵攻击原理分析--phalcon+etherscan">
+      EGD价格操纵攻击原理分析--phalcon+etherscan <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%8C%BA%E5%9D%97%E9%93%BE%E4%B8%8A%E7%9A%84%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">什么是区块链上的闪电贷：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">闪电贷具体实现示例：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Aave-v2"><span class="nav-number">2.1.</span> <span class="nav-text">Aave_v2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Uniswap-v2"><span class="nav-number">2.2.</span> <span class="nav-text">Uniswap_v2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E7%9A%84%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">闪电贷的攻击类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DFX%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">DFX攻击事件分析</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Emmanuel"
+      src="/images/hometown.jpg">
+  <p class="site-author-name" itemprop="name">Emmanuel</p>
+  <div class="site-description" itemprop="description">XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Emmanuelwh" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Emmanuelwh" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/emmanuel-87-70" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;emmanuel-87-70" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/m0_53689197?type=blog" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;m0_53689197?type&#x3D;blog" rel="noopener" target="_blank"><i class="far fa-keyboard fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://music.163.com/#/user/home?id=2071923556" title="Music → https:&#x2F;&#x2F;music.163.com&#x2F;#&#x2F;user&#x2F;home?id&#x3D;2071923556" rel="noopener" target="_blank"><i class="fab fa-itunes-note fa-fw"></i>Music</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <!-- require APlayer -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+        <!-- require MetingJS-->
+        <script src="https://cdn.jsdelivr.net/npm/meting@1.2/dist/Meting.min.js"></script> 
+      <!--网易云-->   
+        <div class="aplayer" 
+          data-id="8940934500" 
+          data-server="netease" 
+          data-type="playlist" 
+          data-fixed="false" 
+          data-autoplay="true" 
+          data-list-folded="false"
+          data-mutex="true"
+          data-order="random" 
+          data-loop="all"
+          data-volume="0.4" 
+          data-theme="#FADFA3" 
+          date-preload="auto" > 
+        </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+
+  </aside>
+
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Emmanuel</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">29k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">52 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//cdn.bootcss.com/valine/1.4.4/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = '';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gAD7uMtmIxpFIANjozCCYSex-gzGzoHsz',
+      appKey     : '7NgcIb6pbECV8SqPakVb2uc1',
+      placeholder: "聊五毛钱的天嘛？|ω･)و ̑̑༉",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+    </div>
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/src/fireworks.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"right","width":250,"height":400,"hOffset":5,"vOffset":50},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body>
+</html>

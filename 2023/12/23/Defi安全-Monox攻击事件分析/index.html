@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--pjax：防止跳转页面音乐暂停-->
+ <script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/hometown.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/hometown.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="摘要：Defi安全--Monox攻击事件分析--phalcon+etherscan">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Defi安全--Monox攻击事件分析--phalcon+etherscan">
+<meta property="og:url" content="https://emmanuelwh.github.io/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="来自门头沟学院的Emmanuel">
+<meta property="og:description" content="摘要：Defi安全--Monox攻击事件分析--phalcon+etherscan">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312231712103.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312232154206.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312232203080.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312232208153.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312241051714.png">
+<meta property="article:published_time" content="2023-12-23T08:37:52.000Z">
+<meta property="article:modified_time" content="2023-12-24T05:18:27.763Z">
+<meta property="article:author" content="Emmanuel">
+<meta property="article:tag" content="安全事件分析">
+<meta property="article:tag" content="区块链安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312231712103.png">
+
+<link rel="canonical" href="https://emmanuelwh.github.io/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Defi安全--Monox攻击事件分析--phalcon+etherscan | 来自门头沟学院的Emmanuel</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+
+  <meta name="referrer" content="no-referrer">
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">来自门头沟学院的Emmanuel</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">科研  R&B  网球</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">18</span></a>
+
+  </li>
+        <li class="menu-item menu-item-papersummary">
+
+    <a href="/Paper-summary" rel="section"><i class="fa fa-heartbeat fa-fw"></i>PaperSummary</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/Emmanuelwh" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Defi安全--Monox攻击事件分析--phalcon+etherscan
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-12-23 16:37:52" itemprop="dateCreated datePublished" datetime="2023-12-23T16:37:52+08:00">2023-12-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-12-24 13:18:27" itemprop="dateModified" datetime="2023-12-24T13:18:27+08:00">2023-12-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Defi%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Defi安全</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">安全事件分析</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+            <div class="post-description">摘要：Defi安全--Monox攻击事件分析--phalcon+etherscan</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="MonoX攻击事件相关信息"><a href="#MonoX攻击事件相关信息" class="headerlink" title="MonoX攻击事件相关信息"></a>MonoX攻击事件相关信息</h2><p>在Ethereum和Polygon网络都发生了，攻击手段相同，以Ethereum为例进行分析：</p>
+<ul>
+<li>攻击者地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xecbe385f78041895c311070f344b55bfaa953258#code">MonoX Finance Exploiter | Address 0xecbe385f78041895c311070f344b55bfaa953258 | Etherscan</a></li>
+<li><p>攻击合约：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xf079d7911c13369e7fd85607970036d2883afcfd#code">Contract Address 0xf079d7911c13369e7fd85607970036d2883afcfd | Etherscan</a></p>
+</li>
+<li><p>攻击交易：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0x9f14d093a2349de08f02fc0fb018dadb449351d0cdb7d0738ff69cc6fef5f299">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></p>
+</li>
+<li>漏洞合约：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x66e7d7839333f502df355f5bd87aea24bac2ee63#code">Monoswap | Address 0x66e7d7839333f502df355f5bd87aea24bac2ee63 | Etherscan</a></li>
+</ul>
+<h2 id="Monox代码分析及攻击流程讲解"><a href="#Monox代码分析及攻击流程讲解" class="headerlink" title="Monox代码分析及攻击流程讲解"></a>Monox代码分析及攻击流程讲解</h2><h3 id="Monox介绍："><a href="#Monox介绍：" class="headerlink" title="Monox介绍："></a>Monox介绍：</h3><p>与Uniswap不同，其使用的是单边代币池模型，其<code>使用vCash稳定币与AMM提供的代币创建虚拟的交易对</code>。Monox创建的是代币-vCash交易对，添加流动性的时候，只需添加代币，进行任意代币兑换，兑换方式为：<code>代币A -- vCash -- 代币B</code>。</p>
+<h3 id="攻击原理及过程："><a href="#攻击原理及过程：" class="headerlink" title="攻击原理及过程："></a>攻击原理及过程：</h3><p>极大地提高Monoswap中Mono代币的价格，后将拥有的Mono代币通过Monoswap换取代币。</p>
+<p>具体步骤，查看phalcon上攻击交易的调用序列进行分析</p>
+<ol>
+<li>前置阶段</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312231712103.png" alt="image-20231223171211651"></p>
+<ul>
+<li>首先调用<code>WETH</code>的<code>deposit（）</code>函数，向WETH中存入0.1WETH</li>
+<li>随后调用<code>approve（）</code>函数，向Monoswap进行授权，以便后续代币兑换正常进行（在foundry中写测试函数时，很容易遗忘approve这点）</li>
+<li>随后调用Monoswap的<code>swapExactTokenForToken（）</code>函数，将0.1个WETH换成一定数量的Mono(该函数如何实现，可见漏洞合约<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x66e7d7839333f502df355f5bd87aea24bac2ee63#code">Monoswap</a>)</li>
+<li>调用Monoswap的<code>pools()</code>函数，具体后续介绍，获得Mono代币在Monoswap中的pid</li>
+<li>根据pid调用Monoxpool中的<code>totalSupplyOf()</code>函数，查询Mono-vCash池子中作为LP流动性证明的Mono总量。</li>
+</ul>
+<ol>
+<li>移除用户流动性</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312232154206.png" alt="image-20231223215453923"></p>
+<p>在Monox的官方界面可以看到给Mono代币提供代币流动的用户地址，这里从交易序列中可以很明显发现一个漏洞，别的用户的流动性，攻击者竟然可以任意移除</p>
+<p>在Monoswap源码中可以很明显发现，并没有流动性所有者进行相应的校验</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">function _removeLiquidity (address _token, uint256 liquidity,</span><br><span class="line">    address to) view public returns(</span><br><span class="line">    uint256 poolValue, uint256 liquidityIn, uint256 vcashOut, uint256 tokenOut) &#123;</span><br><span class="line">    </span><br><span class="line">    require (liquidity&gt;0, &quot;MonoX:BAD_AMOUNT&quot;);</span><br><span class="line">    uint256 tokenBalanceVcashValue;</span><br><span class="line">    uint256 vcashCredit;</span><br><span class="line">    uint256 vcashDebt;</span><br><span class="line">    PoolInfo memory pool = pools[_token];</span><br><span class="line">    IMonoXPool monoXPoolLocal = monoXPool;</span><br><span class="line">    uint256 lastAdded = monoXPoolLocal.liquidityLastAddedOf(pool.pid, msg.sender);</span><br><span class="line">    </span><br><span class="line">    require((lastAdded + (pool.status == PoolStatus.OFFICIAL ? 4 hours : pool.status == PoolStatus.LISTED ? 24 hours : 0)) &lt;= block.timestamp, &quot;MonoX:WRONG_TIME&quot;); // Users are not allowed to remove liquidity right after adding</span><br><span class="line">    address topLPHolder = monoXPoolLocal.topLPHolderOf(pool.pid);</span><br><span class="line">    require(pool.status != PoolStatus.LISTED || msg.sender != topLPHolder || pool.createdAt + 90 days &lt; block.timestamp, &quot;MonoX:TOP_HOLDER &amp; WRONG_TIME&quot;); // largest LP holder is not allowed to remove LP within 90 days after pool creation</span><br><span class="line"></span><br><span class="line">    (poolValue, tokenBalanceVcashValue, vcashCredit, vcashDebt) = getPool(_token);</span><br><span class="line">    uint256 _totalSupply = monoXPool.totalSupplyOf(pool.pid);</span><br><span class="line"></span><br><span class="line">    liquidityIn = monoXPool.balanceOf(to, pool.pid)&gt;liquidity?liquidity:monoXPool.balanceOf(to, pool.pid);</span><br><span class="line">    uint256 tokenReserve = IERC20(_token).balanceOf(address(monoXPool));</span><br><span class="line">    </span><br><span class="line">    if(tokenReserve &lt; pool.tokenBalance)&#123;</span><br><span class="line">      tokenBalanceVcashValue = tokenReserve.mul(pool.price)/1e18;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if(vcashDebt&gt;0)&#123;</span><br><span class="line">      tokenReserve = (tokenBalanceVcashValue.sub(vcashDebt)).mul(1e18).div(pool.price);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // if vcashCredit==0, vcashOut will be 0 as well</span><br><span class="line">    vcashOut = liquidityIn.mul(vcashCredit).div(_totalSupply);</span><br><span class="line">    tokenOut = liquidityIn.mul(tokenReserve).div(_totalSupply);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>攻击者发现三个主要提供流动性的用户，先调用Monoxpool的<code>balanceOf（）</code>函数查看地址在Monoswap中的Mono数量，后调用移除流动性函数，使得池子中的Mono为0.</p>
+<ol>
+<li>添加流动性</li>
+</ol>
+<p>攻击者自己添加极少的Mono代币到Monoswap中，获得927个LP，为后续拉升Mono的价格做准备</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312232203080.png" alt="image-20231223220301534"></p>
+<ol>
+<li>拉高Mono代币在Monoswap中的价格</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312232208153.png" alt="image-20231223220818186"></p>
+<p>攻击交易中，重复了55次上述行为</p>
+<p>先是调用Monoswap中的<code>pools()</code>函数，从中我们可以看出solidity中这种mapping映射的获得，是通过调用函数的形式活动，可以看一下该函数返回的函数类型：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mapping (address =&gt; PoolInfo) public pools;</span><br><span class="line">  struct PoolInfo &#123;</span><br><span class="line">    uint256 pid;</span><br><span class="line">    uint256 lastPoolValue;</span><br><span class="line">    address token;</span><br><span class="line">    PoolStatus status;</span><br><span class="line">    uint112 vcashDebt;</span><br><span class="line">    uint112 vcashCredit;</span><br><span class="line">    uint112 tokenBalance;</span><br><span class="line">    uint256 price; // over 1e18</span><br><span class="line">    uint256 createdAt; // timestamp</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>这里重点关注的是我们可以通过调用该函数获得该代币在Monoswap中的<code>tokenBalance</code>余额和<code>price</code>当前价格，攻击交易这里主要想获得池子中的tokenBalance余额。</p>
+<p>随后查看攻击者先前用0.1个WETH兑换的Mono代币的余额，即还剩多少个</p>
+<p>随后最关键的步骤调用Monoswap的<code>swapExactTokenForToken()</code>函数，这个函数的功能与uniswap很像，顾名思义，将精准数量的代币兑换成一定数量的另一种代币，这里我们能够很明显发现，参数<code>tokenIn</code>和<code>tokenOut</code>都是Mono，这就是攻击手段！</p>
+<p>所以肯定是该函数中存在漏洞，导致Mono代币价格的拉高。进入函数中看一下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">function swapExactTokenForToken(</span><br><span class="line">  address tokenIn,</span><br><span class="line">  address tokenOut,</span><br><span class="line">  uint amountIn,</span><br><span class="line">  uint amountOutMin,</span><br><span class="line">  address to,</span><br><span class="line">  uint deadline</span><br><span class="line">) external virtual ensure(deadline) returns (uint amountOut) &#123;</span><br><span class="line">  amountOut = swapIn(tokenIn, tokenOut, msg.sender, to, amountIn);</span><br><span class="line">  require(amountOut &gt;= amountOutMin, &#x27;MonoX:INSUFF_OUTPUT&#x27;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function swapIn (address tokenIn, address tokenOut, address from, address to,</span><br><span class="line">    uint256 amountIn) internal lockToken(tokenIn) returns(uint256 amountOut)  &#123;</span><br><span class="line"></span><br><span class="line">  address monoXPoolLocal = address(monoXPool);</span><br><span class="line"></span><br><span class="line">  amountIn = transferAndCheck(from,monoXPoolLocal,tokenIn,amountIn); </span><br><span class="line">  </span><br><span class="line">  // uint256 halfFeesInTokenIn = amountIn.mul(fees)/2e5;</span><br><span class="line"></span><br><span class="line">  uint256 tokenInPrice;</span><br><span class="line">  uint256 tokenOutPrice;</span><br><span class="line">  uint256 tradeVcashValue;</span><br><span class="line">  </span><br><span class="line">  (tokenInPrice, tokenOutPrice, amountOut, tradeVcashValue) = getAmountOut(tokenIn, tokenOut, amountIn);</span><br><span class="line"></span><br><span class="line">  uint256 oneSideFeesInVcash = tokenInPrice.mul(amountIn.mul(fees)/2e5)/1e18;</span><br><span class="line"></span><br><span class="line">  // trading in</span><br><span class="line">  if(tokenIn==address(vCash))&#123;</span><br><span class="line">    vCash.burn(monoXPoolLocal, amountIn);</span><br><span class="line">    // all fees go to the other side</span><br><span class="line">    oneSideFeesInVcash = oneSideFeesInVcash.mul(2);</span><br><span class="line">  &#125;else&#123;</span><br><span class="line">    _updateTokenInfo(tokenIn, tokenInPrice, 0, tradeVcashValue.add(oneSideFeesInVcash), 0);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // trading out</span><br><span class="line">  if(tokenOut==address(vCash))&#123;</span><br><span class="line">    vCash.mint(to, amountOut);</span><br><span class="line">  &#125;else&#123;</span><br><span class="line">    if (to != monoXPoolLocal) &#123;</span><br><span class="line">      IMonoXPool(monoXPoolLocal).safeTransferERC20Token(tokenOut, to, amountOut);</span><br><span class="line">    &#125;</span><br><span class="line">    _updateTokenInfo(tokenOut, tokenOutPrice, tradeVcashValue.add(oneSideFeesInVcash), 0, </span><br><span class="line">      to == monoXPoolLocal ? amountOut : 0);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if(pools[tokenIn].vcashDebt &gt; 0 &amp;&amp; pools[tokenIn].status == PoolStatus.OFFICIAL)&#123;</span><br><span class="line">    _internalRebalance(tokenIn);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  emit Swap(to, tokenIn, tokenOut, amountIn, amountOut, tradeVcashValue);</span><br><span class="line">  </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>swapIn函数较复杂，我们可以从后往前看，看到它有个<code>_updateTokenInfo()</code>函数，更新token的信息，看一下源码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">function _updateTokenInfo (address _token, uint256 _price,</span><br><span class="line">    uint256 _vcashIn, uint256 _vcashOut, uint256 _ETHDebt) internal &#123;</span><br><span class="line">  uint256 _balance = IERC20(_token).balanceOf(address(monoXPool));</span><br><span class="line">  _balance = _balance.sub(_ETHDebt);</span><br><span class="line">  require(pools[_token].status!=PoolStatus.PAUSED,&quot;MonoX:PAUSED&quot;);</span><br><span class="line">  require(_balance &lt;= uint112(-1));</span><br><span class="line">  (uint initialPoolValue, , ,) = getPool(_token);</span><br><span class="line">  pools[_token].tokenBalance = uint112(_balance);</span><br><span class="line">  pools[_token].price = _price;</span><br><span class="line"></span><br><span class="line">  // record last trade&#x27;s block number in mapping: lastTradedBlock</span><br><span class="line">  lastTradedBlock[_token] = block.number;</span><br><span class="line"></span><br><span class="line">  _updateVcashBalance(_token, _vcashIn, _vcashOut);</span><br><span class="line"></span><br><span class="line">  (uint poolValue, , ,) = getPool(_token);</span><br><span class="line"></span><br><span class="line">  require(initialPoolValue &lt;= poolValue || poolValue &gt;= poolSizeMinLimit,</span><br><span class="line">    &quot;MonoX:MIN_POOL_SIZE&quot;);</span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从代码中我们可以看出，将Monoswap池子中代币的数量和价格更新，其中代币的价格就是函数参数的<code>tokenInPrice</code>和<code>tokenOutPrice</code>,这两个参数都是通过<code>getAmountOut（）</code>函数计算得到，进入该函数，分析源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">function getAmountOut(address tokenIn, address tokenOut, </span><br><span class="line">    uint256 amountIn) public view returns (uint256 tokenInPrice, uint256 tokenOutPrice, </span><br><span class="line">    uint256 amountOut, uint256 tradeVcashValue) &#123;</span><br><span class="line">    require(amountIn &gt; 0, &#x27;MonoX:INSUFF_INPUT&#x27;);</span><br><span class="line">    </span><br><span class="line">    uint256 amountInWithFee = amountIn.mul(1e5-fees)/1e5;</span><br><span class="line">    address vcashAddress = address(vCash);</span><br><span class="line">    uint tokenInPoolPrice = pools[tokenIn].price;</span><br><span class="line">    uint tokenInPoolTokenBalance = pools[tokenIn].tokenBalance;</span><br><span class="line"></span><br><span class="line">    if(tokenIn==vcashAddress)&#123;</span><br><span class="line">      tradeVcashValue = amountInWithFee;</span><br><span class="line">      tokenInPrice = 1e18;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">      require (tokenPoolStatus[tokenIn]==1, &quot;MonoX:NO_POOL&quot;);</span><br><span class="line">      // PoolInfo memory tokenInPool = pools[tokenIn];</span><br><span class="line">      PoolStatus tokenInPoolStatus = pools[tokenIn].status;</span><br><span class="line">      </span><br><span class="line">      require (tokenInPoolStatus != PoolStatus.UNLISTED, &quot;MonoX:POOL_UNLST&quot;);</span><br><span class="line">      </span><br><span class="line">      tokenInPrice = _getNewPrice(tokenInPoolPrice, tokenInPoolTokenBalance, </span><br><span class="line">        amountInWithFee, 0, TxType.SELL);</span><br><span class="line">      tradeVcashValue = _getAvgPrice(tokenInPoolPrice, tokenInPrice).mul(amountInWithFee)/1e18;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if(tokenOut==vcashAddress)&#123;</span><br><span class="line">      amountOut = tradeVcashValue;</span><br><span class="line">      tokenOutPrice = 1e18;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">      require (tokenPoolStatus[tokenOut]==1, &quot;MonoX:NO_POOL&quot;);</span><br><span class="line">      // PoolInfo memory tokenOutPool = pools[tokenOut];</span><br><span class="line">      PoolStatus tokenOutPoolStatus = pools[tokenOut].status;</span><br><span class="line">      uint tokenOutPoolPrice = pools[tokenOut].price;</span><br><span class="line">      uint tokenOutPoolTokenBalance = pools[tokenOut].tokenBalance;</span><br><span class="line"></span><br><span class="line">      require (tokenOutPoolStatus != PoolStatus.UNLISTED, &quot;MonoX:POOL_UNLST&quot;);</span><br><span class="line">      </span><br><span class="line">      amountOut = tradeVcashValue.add(tokenOutPoolTokenBalance.mul(tokenOutPoolPrice).div(1e18));</span><br><span class="line">      amountOut = tradeVcashValue.mul(tokenOutPoolTokenBalance).div(amountOut);</span><br><span class="line"></span><br><span class="line">      bool allowDirectSwap=directSwapAllowed(tokenInPoolPrice,tokenOutPoolPrice,tokenInPoolTokenBalance,tokenOutPoolTokenBalance,tokenOutPoolStatus,true);</span><br><span class="line"></span><br><span class="line">      // assuming p1*p2 = k, equivalent to uniswap&#x27;s x * y = k</span><br><span class="line">      uint directSwapTokenOutPrice = allowDirectSwap?tokenInPoolPrice.mul(tokenOutPoolPrice).div(tokenInPrice):uint(-1);</span><br><span class="line"></span><br><span class="line">      // prevent the attack where user can use a small pool to update price in a much larger pool</span><br><span class="line">      tokenOutPrice = _getNewPrice(tokenOutPoolPrice, tokenOutPoolTokenBalance, </span><br><span class="line">        amountOut, 0, TxType.BUY);</span><br><span class="line">      tokenOutPrice = directSwapTokenOutPrice &lt; tokenOutPrice?directSwapTokenOutPrice:tokenOutPrice;</span><br><span class="line"></span><br><span class="line">      amountOut = tradeVcashValue.mul(1e18).div(_getAvgPrice(tokenOutPoolPrice, tokenOutPrice));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>通过上述代码可以得到，<code>tokenInPrice</code>和<code>tokenOutPrice</code>参数的计算都是通过<code>_getNewPrice（）</code>函数，得到函数源码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function _getNewPrice (uint256 originalPrice, uint256 reserve, </span><br><span class="line">  uint256 delta, uint256 deltaBlocks, TxType txType) pure internal returns(uint256 price) &#123;</span><br><span class="line">  if(txType==TxType.SELL) &#123;</span><br><span class="line">    // no risk of being div by 0</span><br><span class="line">    price = originalPrice.mul(reserve)/(reserve.add(delta));</span><br><span class="line">  &#125;else&#123; // BUY</span><br><span class="line">    price = originalPrice.mul(reserve).div(reserve.sub(delta));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过，我们可以发现tokenIn代币，其TxType为SELL，tokenOut代币其Txtype为BUY。</p>
+<p>故可分析，tokenIn代表先进行价格更新计算，originalPrice和reserve都是池子中原来保存的参数，其不会发生变动，相较于originalPrice价格,tokenInPrice变低了。</p>
+<p>分析<code>_getAvgPrice()</code>函数，我们进一步可以分析得到trashVcashValue也变低了，其与toknInPrice呈相同趋势。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function _getAvgPrice (uint256 originalPrice, uint256 newPrice) pure internal returns(uint256 price) &#123;</span><br><span class="line">  price = originalPrice.add(newPrice.mul(4))/5;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>随后，<code>getAmountOut（）</code>函数正常执行，计算tokenOut代币的相关信息，分析<code>_getNewPrice（）</code>函数，肯定可以得到的一个结论是相比于originalPrice也就是池子中代币的价格，tokenOutPrice变高的。</p>
+<p>这时可以不用管其它参数的变化，这里最大的问题，就是这种同种代币的兑换，在<code>swapIn()</code>函数中，其先对tokenIn进行处理，更新代币相应的信息，但其后对tokenOut进行处理时，<em>没有考虑前后兑换为同一种代币的情况</em>，导致代币的价格被覆盖。</p>
+<p>从上述分析中，可得到tokenOut的价格被抬升，tokenIn价格降低，但Mono的价格在兑换时，被覆盖，导致Mono价格异常增长。</p>
+<p>对phalcon中兑换交易的参数分析可得，每次兑换的数量都是交易池中Mono的总量减去1，使得<code>_getNewPrice（）</code>函数计算tokenOutPrice时，能够快速提升价格，<strong>这里也就不能理解第3步中添加流动性的时候，添加很少的Mono</strong>，确保攻击者有足够的余额拉高mono的价格。</p>
+<ol>
+<li>转移非法资产</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312241051714.png" alt="image-20231224105100083"></p>
+<p>攻击者先通过Monoswap查看池子中USDC的价格和余额，随后通过uniswap的USDC/WETH池接入WETH，乐观转账，在<code>uniswapV2call()</code>函数中调用Monoswap的<code>swapTokenForExactToken()</code>函数，将价格极高的Mono代币，换成一定数量的USDB，用以偿还uniswap闪电贷中的USDC（在uniswap闪电贷中，其可以通过还对应的pair代币），这样就将高价格的Mono代币转换成了对应的WETH（可以注意一下phalcon上这里的USDC数字，应该只是6位小数）。</p>
+<p>随后的资产转移方式相同。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">Related Posts</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\07\Defi安全-Monox攻击事件Foundry复现\" rel="bookmark">Defi安全-Monox攻击事件Foundry复现</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击foundry复现\" rel="bookmark">EGD价格操纵攻击foundry复现</a></div>
+    </li>
+  </ul>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Emmanuel
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://emmanuelwh.github.io/2023/12/23/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="Defi安全--Monox攻击事件分析--phalcon+etherscan">https://emmanuelwh.github.io/2023/12/23/Defi安全-Monox攻击事件分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="tag"># 安全事件分析</a>
+              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/19/EGD%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BBfoundry%E5%A4%8D%E7%8E%B0/" rel="prev" title="EGD价格操纵攻击foundry复现">
+      <i class="fa fa-chevron-left"></i> EGD价格操纵攻击foundry复现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/01/07/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6Foundry%E5%A4%8D%E7%8E%B0/" rel="next" title="Defi安全-Monox攻击事件Foundry复现">
+      Defi安全-Monox攻击事件Foundry复现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#MonoX%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">MonoX攻击事件相关信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monox%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B%E8%AE%B2%E8%A7%A3"><span class="nav-number">2.</span> <span class="nav-text">Monox代码分析及攻击流程讲解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Monox%E4%BB%8B%E7%BB%8D%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">Monox介绍：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86%E5%8F%8A%E8%BF%87%E7%A8%8B%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">攻击原理及过程：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Emmanuel"
+      src="/images/hometown.jpg">
+  <p class="site-author-name" itemprop="name">Emmanuel</p>
+  <div class="site-description" itemprop="description">XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Emmanuelwh" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Emmanuelwh" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/emmanuel-87-70" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;emmanuel-87-70" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/m0_53689197?type=blog" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;m0_53689197?type&#x3D;blog" rel="noopener" target="_blank"><i class="far fa-keyboard fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://music.163.com/#/user/home?id=2071923556" title="Music → https:&#x2F;&#x2F;music.163.com&#x2F;#&#x2F;user&#x2F;home?id&#x3D;2071923556" rel="noopener" target="_blank"><i class="fab fa-itunes-note fa-fw"></i>Music</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <!-- require APlayer -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+        <!-- require MetingJS-->
+        <script src="https://cdn.jsdelivr.net/npm/meting@1.2/dist/Meting.min.js"></script> 
+      <!--网易云-->   
+        <div class="aplayer" 
+          data-id="8940934500" 
+          data-server="netease" 
+          data-type="playlist" 
+          data-fixed="false" 
+          data-autoplay="true" 
+          data-list-folded="false"
+          data-mutex="true"
+          data-order="random" 
+          data-loop="all"
+          data-volume="0.4" 
+          data-theme="#FADFA3" 
+          date-preload="auto" > 
+        </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+
+  </aside>
+
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Emmanuel</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">29k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">52 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//cdn.bootcss.com/valine/1.4.4/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = '';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gAD7uMtmIxpFIANjozCCYSex-gzGzoHsz',
+      appKey     : '7NgcIb6pbECV8SqPakVb2uc1',
+      placeholder: "聊五毛钱的天嘛？|ω･)و ̑̑༉",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+    </div>
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/src/fireworks.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"right","width":250,"height":400,"hOffset":5,"vOffset":50},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--pjax：防止跳转页面音乐暂停-->
+ <script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/hometown.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/hometown.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="摘要：Defi安全--Zunami Protocol攻击事件分析--Phalcon+etherscan">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Defi安全--Zunami Protocol攻击事件分析">
+<meta property="og:url" content="https://emmanuelwh.github.io/2024/01/12/Defi%E5%AE%89%E5%85%A8--Zunami%20Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="来自门头沟学院的Emmanuel">
+<meta property="og:description" content="摘要：Defi安全--Zunami Protocol攻击事件分析--Phalcon+etherscan">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121539252.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121621089.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121711714.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121720061.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121729436.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121927672.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122017418.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122036619.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122037904.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122046516.png">
+<meta property="article:published_time" content="2024-01-12T07:30:12.000Z">
+<meta property="article:modified_time" content="2024-01-13T05:20:25.296Z">
+<meta property="article:author" content="Emmanuel">
+<meta property="article:tag" content="Defi安全">
+<meta property="article:tag" content="安全事件分析">
+<meta property="article:tag" content="区块链安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121539252.png">
+
+<link rel="canonical" href="https://emmanuelwh.github.io/2024/01/12/Defi%E5%AE%89%E5%85%A8--Zunami%20Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Defi安全--Zunami Protocol攻击事件分析 | 来自门头沟学院的Emmanuel</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+
+  <meta name="referrer" content="no-referrer">
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">来自门头沟学院的Emmanuel</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">科研  R&B  网球</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">18</span></a>
+
+  </li>
+        <li class="menu-item menu-item-papersummary">
+
+    <a href="/Paper-summary" rel="section"><i class="fa fa-heartbeat fa-fw"></i>PaperSummary</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/Emmanuelwh" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2024/01/12/Defi%E5%AE%89%E5%85%A8--Zunami%20Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Defi安全--Zunami Protocol攻击事件分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-01-12 15:30:12" itemprop="dateCreated datePublished" datetime="2024-01-12T15:30:12+08:00">2024-01-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-01-13 13:20:25" itemprop="dateModified" datetime="2024-01-13T13:20:25+08:00">2024-01-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Defi%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Defi安全</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">安全事件分析</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2024/01/12/Defi%E5%AE%89%E5%85%A8--Zunami%20Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/01/12/Defi%E5%AE%89%E5%85%A8--Zunami%20Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+            <div class="post-description">摘要：Defi安全--Zunami Protocol攻击事件分析--Phalcon+etherscan</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1-Zunami攻击事件相关信息"><a href="#1-Zunami攻击事件相关信息" class="headerlink" title="1  Zunami攻击事件相关信息"></a>1  Zunami攻击事件相关信息</h2><p>2023.8.13发生在Ethereum上发生的攻击，存在两个攻击交易，具体信息如下：</p>
+<ul>
+<li>攻击合约地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xa21a2b59d80dc42d332f778cbb9ea127100e5d75#code">Contract Address 攻击合约</a></li>
+<li>攻击者地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x5f4c21c9bb73c8b4a296cc256c0cde324db146df">Zunami Protocol Exploiter</a></li>
+<li>攻击交易hash1：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0x0788ba222970c7c68a738b0e08fb197e669e61f9b226ceec4cab9b85abe8cceb">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></li>
+<li><p>攻击交易hash2：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0x2aec4fdb2a09ad4269a410f2c770737626fb62c54e0fa8ac25e8582d4b690cca">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></p>
+</li>
+<li><p>phalcon分析调用序列：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/explorer/tx/eth/0x0788ba222970c7c68a738b0e08fb197e669e61f9b226ceec4cab9b85abe8cceb">0x0788ba222970c7c68a | Phalcon Explorer (blocksec.com)</a></p>
+</li>
+</ul>
+<h2 id="2-攻击流程详解"><a href="#2-攻击流程详解" class="headerlink" title="2  攻击流程详解"></a>2  攻击流程详解</h2><h3 id="项目介绍"><a href="#项目介绍" class="headerlink" title="项目介绍"></a>项目介绍</h3><p>Zunami是稳定币投资聚合器，用户给定用ETH/USDC/DAI等稳定币投资Zunami协议；</p>
+<p>然后Zunami协议会使用用户质押的代币到Curve中高收益的池子进行质押；</p>
+<p>那么为了保证更进一步的收益，Zunami还会把Curve的流动性再次质押到StakeDAO和Convex平台中，吃两波流动性奖励。</p>
+<p>然后把收到的流动性奖励代币(CRV)经过用户的质押比例返回给用户。</p>
+<p>zETH是Zunami协议实现的变基代币(rebase token)，变基代币的逻辑是因为他的代币数量计算是锚定了Zunami所有的资产来计算的，所以可以通过闪电贷对Zunami质押的池子买入卖出就可以影响zETH的数量计算</p>
+<h3 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h3><p>两次攻击交易是单独的，但是基于的漏洞及原理是一致的</p>
+<p>以0x0788ba222970c7c68a738b0e08fb197e669e61f9b226ceec4cab9b85abe8cceb攻击交易为例进行分析</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121539252.png" alt="image-20240112153942369"></p>
+<ol>
+<li>对攻击交易进行调用序列分析，直接调用攻击合约中的函数；先查看了Balancer: Vault账户中USDC的余额</li>
+<li>随后攻击者就调用UniswapV3中USDC-USDT对应的闪电贷函数，借出了7 e12wei的USDT；随后查看pair对池子中的USDC和USDT的余额，乐观转账会将对应借贷转给用户。</li>
+<li>闪电贷会回调攻击者的<code>uniswapV3FlashCallback</code>函数，回调中攻击者调用Balancer: Vault的flashloan函数，这里可以看一下这里的函数源码</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function flashLoan(</span><br><span class="line">    IFlashLoanRecipient recipient,</span><br><span class="line">    IERC20[] memory tokens,</span><br><span class="line">    uint256[] memory amounts,</span><br><span class="line">    bytes memory userData</span><br><span class="line">) external override nonReentrant whenNotPaused </span><br></pre></td></tr></table></figure>
+<p>看了一下源码，其功能无特别之处，就是一个闪电贷函数，不过这个函数可以一次借贷多个代币，用<code>tokens</code>和<code>amounts</code>表示对应的数组，先后乐观转账，后回调攻击者，在进行还款</p>
+<ol>
+<li>在Balancer: Vault的flashloan函数中，会查看对应的余额，进行相应的乐观转账，随后会再次回调到攻击者的<code>receiveFlashLoan</code>函数，此时用户已经通过借贷获得了大量的USDT、USDC以及ETH</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121621089.png" alt="image-20240112162057959"></p>
+<ol>
+<li><p>随后攻击者给curve finance，sushiswap以及uniswap上很多factory和router合约地址进行相应的代币授权，并调用Curve Finance: Swap用USDC给池子中添加流动性，获得crvFRAX</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121711714.png" alt="image-20240112171138441"></p>
+</li>
+<li><p>随后调用Curve.fi Factory Pool中的一些pair对的exchange()函数，DEX智能合约的代币交换功能，可以把vyper代码直接放到GPT中解析，可以理解为就算进行代币的交换，攻击者将对应的crvFRAX兑换为Zunami UZD，将USDC兑换为crvUSD。此时用户拥有UZD和crvUSD</p>
+</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121720061.png" alt="image-20240112172018837"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121729436.png" alt="image-20240112172948516"></p>
+<ol>
+<li>攻击再次调用exchange()函数，将所有的crvUSD兑换为对应的UZD，最后攻击者拥有4873316数量的UZD,并且将自身的ETH换成对应的SDT，并且将全部的SDT转到<code>MIMCurveStakeDao</code>中（为什么要进行这样一个存款，可能跟攻击行为有关）<img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401121927672.png" alt="image-20240112174205177"></li>
+<li><p>随后调用SushiSwap: Router的<code>swapExactTokensForTokens</code>函数，进行代币的交换，攻击者首先将自身的WETH兑换为对应的SDT，随后将步骤2中通过闪电贷获得的USDT全部兑换为WETH</p>
+</li>
+<li><p>攻击者调用UZD合约的cacheAssetPrice()函数,仔细看一下函数源码，获得UZD缓存的资产价格，源码如下：</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function cacheAssetPrice() public virtual &#123;</span><br><span class="line">    _blockCached = block.number;</span><br><span class="line">    uint256 currentAssetPrice = assetPrice();</span><br><span class="line">    if (_assetPriceCached &lt; currentAssetPrice) &#123;</span><br><span class="line">        _assetPriceCached = currentAssetPrice;</span><br><span class="line">        emit CachedAssetPrice(_blockCached, _assetPriceCached);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>可以看出对应的<code>_assetPriceCached</code>的价格是由assetPrice()决定的，进一步阅读函数源码</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function assetPrice() public view override returns (uint256) &#123;</span><br><span class="line">    return priceOracle.lpPrice();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进一步阅读etherscan上源码，可得priceOracle地址为0x2ffCC661011beC72e1A9524E12060983E74D14ce，查看该合约的<code>lpPrice()</code>函数。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function lpPrice() external view returns (uint256) &#123;</span><br><span class="line">    return (totalHoldings() * 1e18) / totalSupply();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>价格取决于<code>totalHoldings()</code>函数，<code>totalSupply()</code>为ERC标准函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">function totalHoldings() public view returns (uint256) &#123;</span><br><span class="line">    uint256 length = _poolInfo.length;</span><br><span class="line">    uint256 totalHold = 0;</span><br><span class="line">    for (uint256 pid = 0; pid &lt; length; pid++) &#123;</span><br><span class="line">        totalHold += _poolInfo[pid].strategy.totalHoldings();</span><br><span class="line">    &#125;</span><br><span class="line">    return totalHold;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个会取决于每个_poolInfo[pid].strategy的Holdings()函数，这里我们去看<code>MIMCurveStakeDao</code>对应的函数，源码如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">function totalHoldings() public view virtual returns (uint256) &#123;</span><br><span class="line">    uint256 crvLpHoldings = (vault.liquidityGauge().balanceOf(address(this)) * getCurvePoolPrice()) /</span><br><span class="line">        CURVE_PRICE_DENOMINATOR;</span><br><span class="line"></span><br><span class="line">    uint256 sdtEarned = vault.liquidityGauge().claimable_reward(address(this), address(_config.sdt));</span><br><span class="line">    uint256 amountIn = sdtEarned + _config.sdt.balanceOf(address(this));</span><br><span class="line">    uint256 sdtEarningsInFeeToken = priceTokenByExchange(amountIn, _config.sdtToFeeTokenPath);</span><br><span class="line"></span><br><span class="line">    uint256 crvEarned = vault.liquidityGauge().claimable_reward(address(this), address(_config.crv));</span><br><span class="line">    amountIn = crvEarned + _config.crv.balanceOf(address(this));</span><br><span class="line">    uint256 crvEarningsInFeeToken = priceTokenByExchange(amountIn, _config.crvToFeeTokenPath);</span><br><span class="line"></span><br><span class="line">    uint256 tokensHoldings = 0;</span><br><span class="line">    for (uint256 i = 0; i &lt; 3; i++) &#123;</span><br><span class="line">        tokensHoldings += _config.tokens[i].balanceOf(address(this)) * decimalsMultipliers[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return</span><br><span class="line">        tokensHoldings +</span><br><span class="line">        crvLpHoldings +</span><br><span class="line">        (sdtEarningsInFeeToken + crvEarningsInFeeToken) *</span><br><span class="line">        decimalsMultipliers[feeTokenId];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function priceTokenByExchange(uint256 amountIn, address[] memory exchangePath)</span><br><span class="line">    internal</span><br><span class="line">    view</span><br><span class="line">    returns (uint256)</span><br><span class="line">&#123;</span><br><span class="line">    if (amountIn == 0) return 0;</span><br><span class="line">    uint256[] memory amounts = _config.router.getAmountsOut(amountIn, exchangePath);</span><br><span class="line">    return amounts[amounts.length - 1];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重点关注sdtEarningsInFeeToken，因为攻击者在此之前，给该合约存入了大量的SDT，仔细看一下<code>priceTokenByExchange()</code>函数</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122017418.png" alt="image-20240112201732602"></p>
+<p>进一步可以去SushiSwap: Router中查看<code>getAmountsOut()</code>函数，发现其返回值与amountIn正相关，amountIn的值一定程度上取决于该合约当前的SDT余额，而攻击者在此之前给该地址存入了大量的SDT，最终导致sdtEarningsInFeeToken数量过高，CachedAssetPrice价格过高</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122036619.png" alt="image-20240112203605220"></p>
+<ol>
+<li>随后攻击者调用SushiSwap: Router的<code>swapExactTokensForTokens</code>函数，将SDT转化为WETH，将WETH换成USDT</li>
+<li>随后调用UZD合约中的balanceOf函数，发现其依赖于被操纵的cacheAssetPrice价格，具体如下：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">function balanceOf(address account) public view virtual override returns (uint256) &#123;</span><br><span class="line">    if (!containRigidAddress(account)) return super.balanceOf(account);</span><br><span class="line"></span><br><span class="line">    return _balancesRigid[account];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function balanceOf(address account) public view virtual override returns (uint256) &#123;</span><br><span class="line">    // don&#x27;t cache price</span><br><span class="line">    return _convertFromNominalCached(_balances[account], Math.Rounding.Down);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function _convertFromNominalWithCaching(uint256 nominal, Math.Rounding rounding)</span><br><span class="line">    internal</span><br><span class="line">    virtual</span><br><span class="line">    returns (uint256 value)</span><br><span class="line">&#123;</span><br><span class="line">    if (nominal == type(uint256).max) return type(uint256).max;</span><br><span class="line">    _cacheAssetPriceByBlock();</span><br><span class="line">    return nominal.mulDiv(assetPriceCached(), DEFAULT_DECIMALS_FACTOR, rounding);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以其会错误计算攻击者的UZD余额，这时攻击者进行相应的套利即可</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122037904.png" alt="image-20240112203656910"></p>
+<ol>
+<li><p>通过Curve.fi Factory Pool的exchange函数，先将错误余额数量的UZD，一部分兑换为crvFRAX，另一部分兑换为crvUSD。</p>
+<p>移除Curve Finance: Swap中的流动性，攻击者获得对应的FRAX和USDC。</p>
+<p>调用exchange函数，将对应的FRAX和crvUSD兑换城USDC</p>
+<p>并且最后将大部分的USDC全部兑换成USDT，现在攻击者资产为USDT和USDC。</p>
+</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401122046516.png" alt="image-20240112204626131"></p>
+<ol>
+<li>调用WETH-USDCpair对的闪电贷，获得大量的WETH，攻击者偿还相应数量的USDC，并偿还第2步中Balancer: Vault闪电贷借贷的WETH和USDC，最后偿还第一步中uniswapV3借贷的USDT</li>
+<li>最后偿还完闪电贷后，攻击者获得资产USDT和WETH，将其全部提取完成攻击。</li>
+</ol>
+<p>再简单看一下另一个攻击交易0x2aec4fdb2a09ad4269a410f2c770737626fb62c54e0fa8ac25e8582d4b690cca</p>
+<ul>
+<li>也是先调用攻击合约，后进行闪电贷，借出WETH，然后通过curve finance将eth兑换成zETH</li>
+<li>将ETH兑换成CRV，存入sEthFraxEthCurveConvex合约中，与上述相同，攻击者账户的zETH余额和sEthFraxEthCurveConvex合约中的CRV余额相关，攻击者通过多次在wETH/CRV在池子中兑换CRV，操纵了CRV的价格和漏洞合约的CRV余额，最终导致CachedAssetPrice变大</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">Related Posts</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击foundry复现\" rel="bookmark">EGD价格操纵攻击foundry复现</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\16\价格操纵攻击再理解\" rel="bookmark">价格操纵攻击再理解</a></div>
+    </li>
+  </ul>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Emmanuel
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://emmanuelwh.github.io/2024/01/12/Defi%E5%AE%89%E5%85%A8--Zunami%20Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="Defi安全--Zunami Protocol攻击事件分析">https://emmanuelwh.github.io/2024/01/12/Defi安全--Zunami Protocol攻击事件分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Defi%E5%AE%89%E5%85%A8/" rel="tag"># Defi安全</a>
+              <a href="/tags/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="tag"># 安全事件分析</a>
+              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/01/07/Defi%E5%AE%89%E5%85%A8-Monox%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6Foundry%E5%A4%8D%E7%8E%B0/" rel="prev" title="Defi安全-Monox攻击事件Foundry复现">
+      <i class="fa fa-chevron-left"></i> Defi安全-Monox攻击事件Foundry复现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/01/16/Defi%E5%AE%89%E5%85%A8-Orion-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="next" title="Defi安全--Orion Protocol攻击事件分析">
+      Defi安全--Orion Protocol攻击事件分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Zunami%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1  Zunami攻击事件相关信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="nav-number">2.</span> <span class="nav-text">2  攻击流程详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.1.</span> <span class="nav-text">项目介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">攻击流程</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Emmanuel"
+      src="/images/hometown.jpg">
+  <p class="site-author-name" itemprop="name">Emmanuel</p>
+  <div class="site-description" itemprop="description">XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Emmanuelwh" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Emmanuelwh" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/emmanuel-87-70" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;emmanuel-87-70" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/m0_53689197?type=blog" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;m0_53689197?type&#x3D;blog" rel="noopener" target="_blank"><i class="far fa-keyboard fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://music.163.com/#/user/home?id=2071923556" title="Music → https:&#x2F;&#x2F;music.163.com&#x2F;#&#x2F;user&#x2F;home?id&#x3D;2071923556" rel="noopener" target="_blank"><i class="fab fa-itunes-note fa-fw"></i>Music</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <!-- require APlayer -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+        <!-- require MetingJS-->
+        <script src="https://cdn.jsdelivr.net/npm/meting@1.2/dist/Meting.min.js"></script> 
+      <!--网易云-->   
+        <div class="aplayer" 
+          data-id="8940934500" 
+          data-server="netease" 
+          data-type="playlist" 
+          data-fixed="false" 
+          data-autoplay="true" 
+          data-list-folded="false"
+          data-mutex="true"
+          data-order="random" 
+          data-loop="all"
+          data-volume="0.4" 
+          data-theme="#FADFA3" 
+          date-preload="auto" > 
+        </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+
+  </aside>
+
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Emmanuel</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">29k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">52 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//cdn.bootcss.com/valine/1.4.4/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = '';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gAD7uMtmIxpFIANjozCCYSex-gzGzoHsz',
+      appKey     : '7NgcIb6pbECV8SqPakVb2uc1',
+      placeholder: "聊五毛钱的天嘛？|ω･)و ̑̑༉",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+    </div>
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/src/fireworks.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"right","width":250,"height":400,"hOffset":5,"vOffset":50},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body>
+</html>
