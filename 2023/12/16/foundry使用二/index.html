@@ -293,22 +293,18 @@
       
         <h1 id="2-Forge："><a href="#2-Forge：" class="headerlink" title="2. Forge："></a>2. Forge：</h1><p>Forge是Foundry附带的命令行工具，用来测试、构建和部署智能合约</p>
 <figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">forge test</span><br></pre></td></tr></table></figure>
-
 <p>运行测试用例，所有测试都是Solidity编写</p>
 <p>Forge将从源目录的任何位置查找测试，任何具有以test开头的函数的合约都被认为是一个测试。</p>
 <p>通常测试放在<code>src/test中</code></p>
 <p>通过传递过滤器运行特定测试：</p>
 <figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">forge test --match-contract ComplicatedContractTest --match-test testDeposit</span><br></pre></td></tr></table></figure>
-
 <p>这将在名称中带有 <code>testDeposit</code> 的 <code>ComplicatedContractTest</code> 测试合约中运行测试。</p>
-<h2 id="2-1-编写测试："><a href="#2-1-编写测试：" class="headerlink" title="2.1 编写测试："></a>2.1 编写测试：</h2><p>测试代码是用Solidity编写的，最常见的测试编写是通过<code>Forge</code> ****标准库的<code>Test</code>合约实现。</p>
+<h2 id="2-1-编写测试："><a href="#2-1-编写测试：" class="headerlink" title="2.1 编写测试："></a>2.1 编写测试：</h2><p>测试代码是用Solidity编写的，最常见的测试编写是通过<code>Forge</code> <em>**</em>标准库的<code>Test</code>合约实现。</p>
 <p>使用Forge标准库，会利用到DSTest合约，其提供基本的日志记录和断言功能</p>
 <p>导入<code>forge-std/Test.sol</code> 并继承自测试合约<code>Test</code></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">import &quot;forge-std/Test.sol&quot;;</span><br></pre></td></tr></table></figure>
-
 <p>一个测试案例：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity 0.8.10;</span><br><span class="line"></span><br><span class="line">import &quot;forge-std/Test.sol&quot;;</span><br><span class="line"></span><br><span class="line">contract ContractBTest is Test &#123;</span><br><span class="line">    uint256 testNumber;</span><br><span class="line"></span><br><span class="line">    function setUp() public &#123;</span><br><span class="line">        testNumber = 42;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function testNumberIs42() public &#123;</span><br><span class="line">        assertEq(testNumber, 42);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function testFailSubtract43() public &#123;</span><br><span class="line">        testNumber -= 43;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li><code>setUp()</code> :在每个测试用例运行之前调用的可选函数</li>
 <li><code>test()</code> :以<code>test</code> 为前缀的函数作为测试用例执行</li>
@@ -323,12 +319,10 @@
 <p>我们的目的是为了验证一个合约的函数只能被合约所有者所调用，编写个测试</p>
 <p>在<code>./test</code> 文件夹下添加一个Owner.t.sol测试文件</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity 0.8.10;</span><br><span class="line">import &quot;forge-std/Test.sol&quot;;</span><br><span class="line">error Unauthorized();</span><br><span class="line"></span><br><span class="line">contract OwnerUpOnly &#123;</span><br><span class="line">    address public immutable owner;</span><br><span class="line">    uint256 public count;</span><br><span class="line">    constructor() &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">    function increment() external &#123;</span><br><span class="line">        if (msg.sender != owner) &#123;</span><br><span class="line">            revert Unauthorized();</span><br><span class="line">        &#125;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract OwnerUpOnlyTest is Test &#123;</span><br><span class="line">    OwnerUpOnly upOnly;</span><br><span class="line">    function setUp() public &#123;</span><br><span class="line">        upOnly = new OwnerUpOnly();</span><br><span class="line">    &#125;</span><br><span class="line">    function testIncrementAsOwner() public &#123;</span><br><span class="line">        assertEq(upOnly.count(), 0);</span><br><span class="line">        upOnly.increment();</span><br><span class="line">        assertEq(upOnly.count(), 1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
 <p>运行<code>forge test</code> ,发现测试通过</p>
 <p>接下来测试不是所有者的人不能增加计数</p>
 <p>合约<code>OwnerUpOnlyTest</code> 中添加一函数：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">function testIncrementAsNotOwner() public &#123;</span><br><span class="line">        vm.prank(address(0));</span><br><span class="line">        upOnly.increment();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
 <p>再次运行<code>forge test</code> ,发现测试revert，说明不是合约所有者不能增加计数</p>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161100300.png" alt="forge test示例"></p>
 <p><code>**vm.prank(address)</code>** cheatcode将msg.sender的身份更改为零地址后，进行下一次调用，保证调用者不是合约所有者。</p>
@@ -347,7 +341,7 @@
 <li><strong>红色</strong>：用于有 revert 的调用</li>
 <li><strong>蓝色</strong>：用于调用作弊码</li>
 <li><strong>青色</strong>：用于触发日志</li>
-<li><strong>黄色</strong>：用于合约部署<br><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161100797.png" alt="forge trace示例"></li>
+<li><strong>黄色</strong>：用于合约部署<br><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161100797.png" alt="forge trace示例">   </li>
 </ul>
 <h2 id="2-5-分叉测试"><a href="#2-5-分叉测试" class="headerlink" title="2.5 分叉测试"></a>2.5 分叉测试</h2><p>Forge支持使用两种不同方式进行分叉测试：</p>
 <ul>
@@ -356,7 +350,6 @@
 </ul>
 <h3 id="2-5-1-分叉模式："><a href="#2-5-1-分叉模式：" class="headerlink" title="2.5.1 分叉模式："></a>2.5.1 分叉模式：</h3><p>通过<code>--fork-url</code> 传递RPC URL，<code>--fork-block-number</code> 指定分叉的区块高度</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">forge test --fork-url &quot;https://mainnet.infura.io/v3/10973852e3ce414296d70fd551402e92&quot; --fork-block-number 17001200</span><br></pre></td></tr></table></figure>
-
 <h3 id="2-5-2分叉作弊码："><a href="#2-5-2分叉作弊码：" class="headerlink" title="2.5.2分叉作弊码："></a>2.5.2分叉作弊码：</h3><p>在Solidity测试代码中以编程方式进入分叉模式。</p>
 <p>Foundry测试代码中：所有的测试函数的隔离的，每个测试函数都使用<code>setup()</code> 之后的拷贝状态执行, <code>setup()</code> 期间创建的分支可用于测试。</p>
 <ul>
@@ -603,7 +596,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">53 mins.</span>
+    <span title="Reading time total">52 mins.</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

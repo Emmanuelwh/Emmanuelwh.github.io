@@ -295,9 +295,7 @@
 
       
         <h1 id="1-Foundry环境搭建："><a href="#1-Foundry环境搭建：" class="headerlink" title="1. Foundry环境搭建："></a>1. Foundry环境搭建：</h1><h2 id="1-1-拉取Foundry-镜像"><a href="#1-1-拉取Foundry-镜像" class="headerlink" title="1.1 拉取Foundry 镜像"></a>1.1 拉取<code>Foundry</code> 镜像</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull ghcr.io/foundry-rs/foundry:latest</span><br></pre></td></tr></table></figure>
-
 <h2 id="1-2-以sh形式，创建一个新的容器，并运行对应的容器"><a href="#1-2-以sh形式，创建一个新的容器，并运行对应的容器" class="headerlink" title="1.2 以sh形式，创建一个新的容器，并运行对应的容器"></a>1.2 以sh形式，创建一个新的容器，并运行对应的容器</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker <span class="keyword">run</span><span class="language-bash"> -d -v /local_dir:/docker_dir -it --name new_name image_name /bin/sh</span></span><br></pre></td></tr></table></figure>
-
 <ul>
 <li><code>-d</code>：让容器在后台运行</li>
 <li><code>-v</code>：用以挂载卷</li>
@@ -305,7 +303,6 @@
 <li><code>--name</code> ：给容器命名</li>
 </ul>
 <h2 id="1-3-查看容器的是否运行，以及容器id"><a href="#1-3-查看容器的是否运行，以及容器id" class="headerlink" title="1.3 查看容器的是否运行，以及容器id"></a>1.3 查看容器的是否运行，以及容器id</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker ps</span><br></pre></td></tr></table></figure>
-
 <h2 id="1-4-进行容器交互界面"><a href="#1-4-进行容器交互界面" class="headerlink" title="1.4 进行容器交互界面"></a>1.4 进行容器交互界面</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker exec -it containerID/name /bin/sh</span><br></pre></td></tr></table></figure>
 
     </div>
@@ -541,7 +538,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">53 mins.</span>
+    <span title="Reading time total">52 mins.</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
