@@ -146,7 +146,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">18</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">20</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -301,7 +301,7 @@
 </li>
 <li><p>目标链上(以太坊)上的relayer虽然对交易做了校验，但是攻击者可以直接调用以太坊上的EthCrossChainManager合约最终调用EthCrossChainData合约完成签名修改</p>
 </li>
-<li><p>攻击者精心够着了能导致hash冲突的函数签名，从而调用<code>putCurEpochConPubKeyBytes</code>完成对签名的修改 </p>
+<li><p>攻击者精心够着了能导致hash冲突的函数签名，从而调用<code>putCurEpochConPubKeyBytes</code>完成对签名的修改</p>
 </li>
 </ul>
 <p>见攻击步骤的具体分析</p>
@@ -311,7 +311,7 @@
 <ul>
 <li>用户在Polygon上发起Withdraw交易，该交易会burn掉用户在Polygon的代币；</li>
 <li>经过一个检查点间隔（大约30分钟），等待该withdraw交易被包含到检查点中；</li>
-<li>超过2/3的验证者签名后将其提交到以太坊，此时用户调用ERC20PredicateBurnOnly合约中的startExitWithBurntTokens()校验checkpoint是否包含burn交易；</li>
+<li>超过2&#x2F;3的验证者签名后将其提交到以太坊，此时用户调用ERC20PredicateBurnOnly合约中的startExitWithBurntTokens()校验checkpoint是否包含burn交易；</li>
 <li>校验通过，则铸造一个NFT退款凭证发给用户</li>
 <li>用户等待7天挑战期</li>
 <li>调用WithdrawManager.processExits()销毁NFT，并退款给用户</li>
@@ -324,29 +324,30 @@
 <li>交易的校验过程调用_getNibbleArray()对<strong>branceMaskBytes</strong> 进行了转码操作。<br><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161139906.png" alt="在这里插入图片描述"></li>
 </ol>
 <p>该函数将对应的HP编码，转成对应的Hex编码。</p>
-<ol>
+<ol start="5">
 <li>如果传入的HP编码后的值b的第一个十六进制位（半个字节）是1或3，就解析第二个十六进制位。否则，就直接忽略第一个字节。</li>
-<li>那么如果攻击者构造一个branchMaskBytes参数，使得其第一个十六进制位不等于1和3，则共有14*16 = 224种方式，能够获得相同的转码后的值</li>
+<li>那么如果攻击者构造一个branchMaskBytes参数，使得其第一个十六进制位不等于1和3，则共有14*16 &#x3D; 224种方式，能够获得相同的转码后的值</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Hex转HP</span><br><span class="line">[6,3,6,1,7,4,10]   Hex编码</span><br><span class="line">[20,63,61,74]  HP编码</span><br><span class="line">HP转Hex</span><br><span class="line">[15,23,45,32,62]  HP编码</span><br><span class="line">[5,2,3,4,5,3,2,6,2]Hex编码</span><br><span class="line">[20，45，76，34]HP编码   [23，...]HP编码</span><br><span class="line">[4，5，7，6，3，4，10]Hex编码</span><br></pre></td></tr></table></figure>
+
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/565059008">Polygon事件分析CN</a></p>
 <p><a target="_blank" rel="noopener" href="https://medium.com/immunefi/polygon-double-spend-bug-fix-postmortem-2m-bounty-5a1db09db7f1">Polygon事件分析Eng</a></p>
 <h2 id="Meter-io-跨链桥事件"><a href="#Meter-io-跨链桥事件" class="headerlink" title="Meter.io 跨链桥事件"></a>Meter.io 跨链桥事件</h2><p>绕过源链上代币的锁定过程，却获得了代币的锁定证明，进而在目标链铸造资产</p>
 <ul>
-<li>deposit()用于ERC20代币的存款，depositETH()用于WETH/WBNB代币的存款。</li>
-<li>Bridge合约提供了两种方法：deposit()和depositETH()用于上述两种代币的存款，但是deposit()并没有阻止WETH/WBNB的存款交易，并且存在有着缺陷的逻辑判断。</li>
+<li>deposit()用于ERC20代币的存款，depositETH()用于WETH&#x2F;WBNB代币的存款。</li>
+<li>Bridge合约提供了两种方法：deposit()和depositETH()用于上述两种代币的存款，但是deposit()并没有阻止WETH&#x2F;WBNB的存款交易，并且存在有着缺陷的逻辑判断。</li>
 </ul>
 <p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312161139187.png" alt="在这里插入图片描述"></p>
 <p>当<code>tokenAddress</code>不为<code>_wtokenAddress</code>地址时进行 ERC20 代币的销毁或锁定，若为<code>_wtokenAddress</code>则直接跳过该部分处理.</p>
 <p>跨链桥合约中的<code>depositETH</code>函数会将链平台币转为<code>wToken</code>后转至<code>depositHandler</code>地址，所以在<code>depositHandler</code>执行<code>deposit</code>逻辑时，已处理过代币转移，故跳过代币处理逻辑</p>
 <p>但跨链桥合约的<code>deposit</code>函数中并没有处理代币转移及校验，在转由<code>deposiHandler</code>执行<code>deposit</code>时，若<code>data</code>数据构造成满足<code>tokenAddress == _wtokenAddress</code>即可绕过处理</p>
-<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzU5OTg4MTIxMw==&amp;mid=2247493859&amp;idx=1&amp;sn=49e5634b17d3025326c3ddbc8358d41a&amp;chksm=feac8c71c9db056700954938f2bf41511498faf9b94f169c9512ca22fea9155b019d3c4531b4&amp;scene=21#wechat_redirect">慢雾Meter.io跨链桥分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzU5OTg4MTIxMw==&mid=2247493859&idx=1&sn=49e5634b17d3025326c3ddbc8358d41a&chksm=feac8c71c9db056700954938f2bf41511498faf9b94f169c9512ca22fea9155b019d3c4531b4&scene=21#wechat_redirect">慢雾Meter.io跨链桥分析</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/SierraW/article/details/122857171">Meter.io跨链桥分析</a></p>
 <h2 id="Wormhole-Bridge跨链桥事件"><a href="#Wormhole-Bridge跨链桥事件" class="headerlink" title="Wormhole Bridge跨链桥事件"></a>Wormhole Bridge跨链桥事件</h2><p>利用虚假的签名，在目标链Solana链上mint了12万个WETH。</p>
-<p>Wormhole中引入了Validator角色—即<code>guardians</code> </p>
+<p>Wormhole中引入了Validator角色–即<code>guardians</code> </p>
 <ul>
-<li>Wormhole中没有leader角色，所有的guardians都对其监听到的<code>on-chain event</code>执行相同的计算，同时对<code>Validator Action Approval</code>(VAA)签名。</li>
-<li>若有⅔+的大多数guardian节点使用各自私钥对同一event签名，则在所有链上的Wormhole合约都将自动认为其是有效的，并触发相应的mint/burn操作。</li>
+<li>Wormhole中没有leader角色，所有的guardians都对其监听到的<code>on-chain event</code>执行相同的计算，同时对<code>Validator Action Approval </code>(VAA)签名。</li>
+<li>若有⅔+的大多数guardian节点使用各自私钥对同一event签名，则在所有链上的Wormhole合约都将自动认为其是有效的，并触发相应的mint&#x2F;burn操作。</li>
 </ul>
 <ol>
 <li>攻击者在Ethereum上向Solana转入0.1ETH</li>
@@ -357,7 +358,7 @@
 <li><code>verify_signatures</code> 函数的输入之一是Solana内置的<code>system</code>程序，</li>
 <li>在<code>verify_signatures</code>中调用<code>Secp256k1</code>签名验证函数</li>
 <li>Wormhole合约使用函数<code>load_instruction_at</code>来检查<code>Secp256k1</code>函数是否被首先调用</li>
-<li><code>load_instruction_at</code>函数最近被弃用了，因为它不检查它是否针对实际系统地址执行</li>
+<li><code>load_instruction_at </code>函数最近被弃用了，因为它不检查它是否针对实际系统地址执行</li>
 <li>攻击者创建自己的账户地址，存储与<code>Instrcutions sysvar</code>相同的数据。</li>
 <li>使用这个伪造的<code>system</code>程序，攻击者可以有效地谎报签名检查程序已被执行，但根本没有检查签名</li>
 </ol>
@@ -382,16 +383,16 @@
       <div class="popular-posts-title"><a href="\2023\12\16\PolyNetwork以太坊智能合约介绍\" rel="bookmark">PolyNetwork以太坊智能合约介绍</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
-    </li>
-    <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\21\Defi安全-Sentiment-Protocol攻击事件分析\" rel="bookmark">Defi安全--Sentiment Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
     </li>
   </ul>
 
@@ -508,7 +509,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -601,12 +602,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="Symbols count total">29k</span>
+    <span title="Symbols count total">33k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">52 mins.</span>
+    <span title="Reading time total">1:01</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

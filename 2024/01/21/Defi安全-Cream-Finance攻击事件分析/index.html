@@ -22,17 +22,22 @@
     var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="categories">
-<meta property="og:url" content="https://emmanuelwh.github.io/categories/index.html">
+  <meta name="description" content="1、Cream Finance攻击事件相关信息2021年8月30日，Defi抵押借贷平台Cream Finance在ETH上遭受攻击：  攻击合约：Contract Address 攻击合约 | Etherscan 攻击者地址：Cream Finance Flashloan Attacker | Etherscan 攻击交易：Ethereum Transaction Hash (Txhash) D">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Defi安全--Cream Finance攻击事件分析">
+<meta property="og:url" content="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="来自门头沟学院的Emmanuel">
+<meta property="og:description" content="1、Cream Finance攻击事件相关信息2021年8月30日，Defi抵押借贷平台Cream Finance在ETH上遭受攻击：  攻击合约：Contract Address 攻击合约 | Etherscan 攻击者地址：Cream Finance Flashloan Attacker | Etherscan 攻击交易：Ethereum Transaction Hash (Txhash) D">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2023-12-15T07:50:04.000Z">
-<meta property="article:modified_time" content="2023-12-15T12:52:08.348Z">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115395.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115404.png">
+<meta property="article:published_time" content="2024-01-21T13:17:15.000Z">
+<meta property="article:modified_time" content="2024-01-23T14:14:39.662Z">
 <meta property="article:author" content="Emmanuel">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115395.png">
 
-<link rel="canonical" href="https://emmanuelwh.github.io/categories/">
+<link rel="canonical" href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
 
 <script id="page-configurations">
@@ -40,13 +45,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'en'
   };
 </script>
 
-  <title>categories | 来自门头沟学院的Emmanuel
-</title>
+  <title>Defi安全--Cream Finance攻击事件分析 | 来自门头沟学院的Emmanuel</title>
   
 
 
@@ -194,55 +198,186 @@
       <div class="main-inner">
         <div class="content-wrap">
           
-  
-  
 
-          <div class="content page posts-expand">
+          <div class="content post posts-expand">
             
 
     
-    
-    
-    <div class="post-block" lang="en">
-      <header class="post-header">
-
-<h1 class="post-title" itemprop="name headline">categories
-</h1>
-
-<div class="post-meta">
   
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Defi安全--Cream Finance攻击事件分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-01-21 21:17:15" itemprop="dateCreated datePublished" datetime="2024-01-21T21:17:15+08:00">2024-01-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-01-23 22:14:39" itemprop="dateModified" datetime="2024-01-23T22:14:39+08:00">2024-01-23</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>565</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>1 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1、Cream-Finance攻击事件相关信息"><a href="#1、Cream-Finance攻击事件相关信息" class="headerlink" title="1、Cream Finance攻击事件相关信息"></a>1、Cream Finance攻击事件相关信息</h2><p>2021年8月30日，Defi抵押借贷平台Cream Finance在ETH上遭受攻击：</p>
+<ul>
+<li>攻击合约：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x38c40427efbaae566407e4cde2a91947df0bd22b">Contract Address 攻击合约 | Etherscan</a></li>
+<li>攻击者地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xce1f4b4f17224ec6df16eeb1e3e5321c54ff6ede">Cream Finance Flashloan Attacker | Etherscan</a></li>
+<li>攻击交易：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0xa9a1b8ea288eb9ad315088f17f7c7386b9989c95b4d13c81b69d5ddad7ffe61e">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></li>
+<li>Phalcon上交易调用序列：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/explorer/tx/eth/0xa9a1b8ea288eb9ad315088f17f7c7386b9989c95b4d13c81b69d5ddad7ffe61e">0xa9a1b8ea288eb9ad31 | Phalcon Explorer (blocksec.com)</a></li>
+</ul>
+<h2 id="2-Cream-Finance攻击流程详解"><a href="#2-Cream-Finance攻击流程详解" class="headerlink" title="2. Cream Finance攻击流程详解"></a>2. Cream Finance攻击流程详解</h2><ol>
+<li>在Etherscan的攻击交易中，查看对应的input data，发现是存在对应参数的：</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115395.png" alt="image-20240122101742962"></p>
+<ol start="2">
+<li>攻击者调用uniswapv2的闪电贷函数，借出500个WETH，随后回调到攻击者的uniswapV2Call函数中，攻击者将WETH对Cream.Finance: crAMP Token合约代币进行相应的授权，并将对应的WETH转账到自己的账户</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115404.png" alt="image-20240122111058593"></p>
+<ol start="3">
+<li>攻击者调用crETH的mint函数，实现相应的抵押，这里500WETH，应该是作为msg.value传入的</li>
+<li>调用crAMP池中的<code>borrow()</code>函数，想要借出19480000AMP，查看具体的函数源码：<ul>
+<li>调用borrowInternal()函数</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">function borrow(uint256 borrowAmount) external returns (uint256) &#123;</span><br><span class="line">    return borrowInternal(borrowAmount, false);</span><br><span class="line">&#125;</span><br><span class="line">function borrowInternal(uint256 borrowAmount, bool isNative) internal nonReentrant returns (uint256) &#123;</span><br><span class="line">    uint256 error = accrueInterest();</span><br><span class="line">    if (error != uint256(Error.NO_ERROR)) &#123;</span><br><span class="line">        // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed</span><br><span class="line">        return fail(Error(error), FailureInfo.BORROW_ACCRUE_INTEREST_FAILED);</span><br><span class="line">    &#125;</span><br><span class="line">    // borrowFresh emits borrow-specific logs on errors, so we don&#x27;t need to</span><br><span class="line">    return borrowFresh(msg.sender, borrowAmount, isNative);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+    
+    
+    
+      
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Emmanuel
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="Defi安全--Cream Finance攻击事件分析">https://emmanuelwh.github.io/2024/01/21/Defi安全-Cream-Finance攻击事件分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
 </div>
 
-</header>
 
-      
-      
-      
-      <div class="post-body">
-          <div class="category-all-page">
-            <div class="category-all-title">
-              9 categories in total
-            </div>
-            <div class="category-all">
-              <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Defi%E5%AE%89%E5%85%A8/">Defi安全</a><span class="category-list-count">11</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BB%A5%E5%A4%AA%E5%9D%8A/">以太坊</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E5%90%8E%E7%AB%AF/">前后端</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%B7%A5%E5%85%B7/">区块链工具</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">安全事件分析</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6/">智能合约</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9C%8D%E5%8A%A1%E5%99%A8/">服务器</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%B7%A8%E9%93%BE%E6%A1%A5/">跨链桥</a><span class="category-list-count">3</span></li></ul>
-            </div>
-          </div>
+      <footer class="post-footer">
+
         
-      </div>
-      
-      
-      
-    </div>
-    
 
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="prev" title="Defi安全--Sentiment Protocol攻击事件分析">
+      <i class="fa fa-chevron-left"></i> Defi安全--Sentiment Protocol攻击事件分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
     
-    
-    
+  </article>
+  
+  
+  
+
 
 
           </div>
           
+    <div class="comments" id="valine-comments"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -290,6 +425,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1、Cream Finance攻击事件相关信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Cream-Finance%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="nav-number">2.</span> <span class="nav-text">2. Cream Finance攻击流程详解</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

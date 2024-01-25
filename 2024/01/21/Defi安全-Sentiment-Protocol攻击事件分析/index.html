@@ -22,27 +22,35 @@
     var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="摘要：闪电贷原理及安全事件示例分析">
+  <meta name="description" content="摘要：Defi安全-Sentiment Protocol攻击事件分析--phalcon+arbiscan">
 <meta property="og:type" content="article">
-<meta property="og:title" content="闪电贷原理及安全事件分析">
-<meta property="og:url" content="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:title" content="Defi安全--Sentiment Protocol攻击事件分析">
+<meta property="og:url" content="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="来自门头沟学院的Emmanuel">
-<meta property="og:description" content="摘要：闪电贷原理及安全事件示例分析">
+<meta property="og:description" content="摘要：Defi安全-Sentiment Protocol攻击事件分析--phalcon+arbiscan">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png">
-<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png">
-<meta property="article:published_time" content="2023-12-17T09:50:38.000Z">
-<meta property="article:modified_time" content="2023-12-18T06:42:37.477Z">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211048889.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211049470.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211108030.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211117349.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211123766.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211134707.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211139904.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211142981.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211543577.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211508106.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211530739.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211553791.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211559941.png">
+<meta property="article:published_time" content="2024-01-21T02:40:55.000Z">
+<meta property="article:modified_time" content="2024-01-21T09:04:15.502Z">
 <meta property="article:author" content="Emmanuel">
 <meta property="article:tag" content="Defi安全">
-<meta property="article:tag" content="区块链安全">
+<meta property="article:tag" content="安全事件分析">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211048889.png">
 
-<link rel="canonical" href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+<link rel="canonical" href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
 
 <script id="page-configurations">
@@ -55,7 +63,7 @@
   };
 </script>
 
-  <title>闪电贷原理及安全事件分析 | 来自门头沟学院的Emmanuel</title>
+  <title>Defi安全--Sentiment Protocol攻击事件分析 | 来自门头沟学院的Emmanuel</title>
   
 
 
@@ -211,7 +219,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/hometown.jpg">
@@ -224,7 +232,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          闪电贷原理及安全事件分析
+          Defi安全--Sentiment Protocol攻击事件分析
         </h1>
 
         <div class="post-meta">
@@ -233,16 +241,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2023-12-17 17:50:38" itemprop="dateCreated datePublished" datetime="2023-12-17T17:50:38+08:00">2023-12-17</time>
+              <time title="Created: 2024-01-21 10:40:55 / Modified: 17:04:15" itemprop="dateCreated datePublished" datetime="2024-01-21T10:40:55+08:00">2024-01-21</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-12-18 14:42:37" itemprop="dateModified" datetime="2023-12-18T14:42:37+08:00">2023-12-18</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -250,6 +252,10 @@
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/Defi%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Defi安全</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">安全事件分析</span></a>
                 </span>
             </span>
 
@@ -269,8 +275,8 @@
       </span>
       <span class="post-meta-item-text">Valine: </span>
     
-    <a title="valine" href="/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    <a title="valine" href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -280,16 +286,16 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.7k</span>
+              <span>3.1k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>3 mins.</span>
+              <span>6 mins.</span>
             </span>
-            <div class="post-description">摘要：闪电贷原理及安全事件示例分析</div>
+            <div class="post-description">摘要：Defi安全-Sentiment Protocol攻击事件分析--phalcon+arbiscan</div>
 
         </div>
       </header>
@@ -300,65 +306,92 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本文主要参考有：</p>
-<p>[捕鲸船的分享](<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=_1dK61Qnv38">闪电贷原理及安全事件分析——被攻击项目的原因和防范措施 (youtube.com)</a>)</p>
-<p>[SharkTeam系列文章–闪电贷]([闪电贷技术详解-Part 3 | 登链社区 | 区块链技术社区 (learnblockchain.cn)](<a target="_blank" rel="noopener" href="https://learnblockchain.cn/article/4502#Aave">https://learnblockchain.cn/article/4502#Aave</a> 闪电贷优缺点))</p>
-<h2 id="什么是区块链上的闪电贷："><a href="#什么是区块链上的闪电贷：" class="headerlink" title="什么是区块链上的闪电贷："></a>什么是区块链上的闪电贷：</h2><p><code>闪电贷：</code> 最初的目的是在区块链上实现，允许用户在不提供任何东西作为抵押的情况下进行借款。</p>
-<p>如何让真正实现闪电贷这一功能，依靠区块链上交易的原子性，让闪电贷的借贷和偿还在同一交易中完成，如果没有完成相应的偿还，则回退整个交易；</p>
-<p>为防止闪电贷在Defi中的滥用，每次闪电贷还款的时候需要支持贷款金额的贷款费用，如0.09%，否则也将回退整个交易。</p>
-<p>Aave最初提出闪电贷的概念是为了想服务于金融业产品开发者群体，让更多的开发人员在无需资金的情况下，使用闪电贷创建再融资工具或套利工具，构建金融产品，降低开发门槛。（查了一圈找到的比较合理的答案）</p>
-<p>但目前闪电贷被大量滥用与资产间套利。</p>
-<h2 id="闪电贷具体实现示例："><a href="#闪电贷具体实现示例：" class="headerlink" title="闪电贷具体实现示例："></a>闪电贷具体实现示例：</h2><p>常见的闪电贷平台：<code>Uniswap、Aave、Compound、MakerDAO、dYdX</code>等</p>
-<p>存在闪电贷和闪电兑的区别：需不需要偿还相同的资产。</p>
-<p>现有的闪电贷大多都是乐观转账，在借贷函数的实现的，先将借贷的代币转给借贷者，随后回调借贷者的函数，借贷者进行他的操作，最后在借贷函数结束前，必须还清借贷金额以及相应的手续费，否则交易回退</p>
-<h3 id="Aave-v2"><a href="#Aave-v2" class="headerlink" title="Aave_v2"></a>Aave_v2</h3><ul>
-<li><p>检查闪电贷的代币数量，计算手续费，协议费等</p>
-</li>
-<li><p>进行乐观转账，将代币转到用户的地址中</p>
-</li>
-<li><p>回调用户的excuteOperation函数，用户自己来进行套利操作，aave_v1在函数的最后需要进行相应的还款，aave_v2不需要立刻还款，但需要向借贷合约进行相应的授权。</p>
-</li>
-<li><p>v1检查还款金额（合约借贷前余额+手续费），v2借贷合约调用safetransform函数自己进行相应的转账，实现对应的还款。</p>
-<p>下图主要为aave_v1版本的实现</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181055482.png" alt="image.png"></p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181054425.png" alt="image.png"></p>
-</li>
-</ul>
-<h3 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap_v2"></a>Uniswap_v2</h3><p>uniswap其也提供闪电贷的功能，在v2版本中其主要是通过swap函数实现闪电贷</p>
-<p>闪电贷其检测是否还款的原理，是根据自动做市商AMM原理，进行k值检验</p>
-<p>可以粗略的理解uniswap，其代币的pair对是满足<br>$$<br>x_1*x_2 &#x3D; k<br>$$</p>
-<p>最后的k值校验只要满足：</p>
-<p>$$<br>(balance^{‘}_1-fee)*(balance^{‘}_0-fee) \ge k<br>$$<br>账户还款后的余额减去对应的交易费用，满足大于k即可。</p>
-<p>从上式我们不难看出，在uniswap中还款，我们不一定需要还同一种资产，可以换相应pair对的资产也可。</p>
+        <h2 id="1-Sentiment-Protocol攻击事件相关信息"><a href="#1-Sentiment-Protocol攻击事件相关信息" class="headerlink" title="1. Sentiment Protocol攻击事件相关信息"></a>1. Sentiment Protocol攻击事件相关信息</h2><p>2023年4月5日，在Arbitrum上的Sentiment项目被攻击</p>
 <ul>
-<li>进行相关借款的检验</li>
-<li>进行乐观转账</li>
-<li>回调借贷者的uniswapV2call函数，进行相应的套利操作，并在函数的最后实现还款</li>
-<li>k值校验，判断是否还款</li>
+<li>攻击合约的地址：<a target="_blank" rel="noopener" href="https://arbiscan.io/address/0x9f626f5941fafe0a5b839907d77fbbd5d0dea9d0">Contract Address 攻击合约| Arbiscan</a></li>
+<li>攻击者地址：<a target="_blank" rel="noopener" href="https://arbiscan.io/address/0xdd0cdb4c3b887bc533957bc32463977e432e49c3">Sentimentxyz Exploiter  Arbiscan</a></li>
+<li>攻击交易：<a target="_blank" rel="noopener" href="https://arbiscan.io/tx/0xa9ff2b587e2741575daf893864710a5cbb44bb64ccdc487a100fa20741e0f74d">Arbitrum Transaction Hash (Txhash) Details | Arbiscan</a></li>
+<li>Phalcon序列分析：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/explorer/tx/arbitrum/0xa9ff2b587e2741575daf893864710a5cbb44bb64ccdc487a100fa20741e0f74d">0xa9ff2b587e2741575d | Phalcon Explorer (blocksec.com)</a></li>
 </ul>
-<p>其闪电贷其余步骤，与aave相似，唯一不同的是，uniswap是将对应的还款在uniswapV2call函数中，直接转给相应的借贷合约</p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107332.png" alt="image.png"></p>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181107303.png" alt="image.png"></p>
-<h2 id="闪电贷的攻击类型"><a href="#闪电贷的攻击类型" class="headerlink" title="闪电贷的攻击类型"></a>闪电贷的攻击类型</h2><ul>
-<li>利用闪电贷大的资金量操纵价格，一些项目中的询价机制存在漏洞，可见[价格操纵文章](<a href="https://emmanuelwh.github.io/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/">价格操纵攻击再理解 | 来自门头沟学院的Emmanuel (emmanuelwh.github.io)</a>)</li>
-<li>一些项目在抵押或其它过程中会产生瞬时奖励，利用闪电贷获得大额奖励</li>
-<li>项目中存在其它逻辑漏洞，利用闪电贷大的资金量发大套利空间</li>
-</ul>
-<h2 id="DFX攻击事件分析"><a href="#DFX攻击事件分析" class="headerlink" title="DFX攻击事件分析"></a>DFX攻击事件分析</h2><p>漏洞的主要原因是主要有两个：</p>
-<ul>
-<li><p>闪电贷归还逻辑为闪电贷前后池子中金额的差值</p>
+<h2 id="2-Sentiment-Protocol攻击事件分析"><a href="#2-Sentiment-Protocol攻击事件分析" class="headerlink" title="2. Sentiment Protocol攻击事件分析"></a>2. Sentiment Protocol攻击事件分析</h2><h3 id="Sentiment项目简介"><a href="#Sentiment项目简介" class="headerlink" title="Sentiment项目简介"></a>Sentiment项目简介</h3><p>Sentiment项目：<code>不足额抵押</code>，抵押价值较少的token，却能够借贷较多价值的token，<code>不足额抵押</code>的token不会直接给到用户，而是存在一个和用户一一对应的Account中，用户可以指挥Account去Defi中（Sentiment的白名单合作伙伴），如aave、balancer等项目中投资。</p>
+<p>大多数情况用户不能自由对资金操作，用户能否自由地处理这笔资金，取决于是否能够绕过Sentiment的RiskEngine的安全检查。</p>
+<h3 id="攻击流程详解："><a href="#攻击流程详解：" class="headerlink" title="攻击流程详解："></a>攻击流程详解：</h3><ol>
+<li>该攻击是发生在Arbitrum链上的Sentiment项目，攻击者直接调用对应的run()函数，发起攻击</li>
+</ol>
+<img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211048889.png" alt="image-20240121104839972" style="zoom:80%;" />
+
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211049470.png" alt="image-20240121104910090"></p>
+<ol start="2">
+<li>攻击合约调用Aave的闪电贷函数，借出对应的WBTC、WETH、USDC.e三种代币，606个WBTC，10050个WETH和18,000,000个 USDC，<code>isFlashBorrower</code>会判断是否已经借款，随后执行响应的闪电贷逻辑，乐观转账，将三种代币转到攻击者合约账户上</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211108030.png" alt="image-20240121110845649"></p>
+<ol start="3">
+<li>攻击者先查看的pair(B-33WETH-33WBTC-33USDC)池子中的价格，随后调用Proxy_62c5_6403合约（Sentiment协议中）去创建一个Account账户，对应攻击者的账户，地址记为BeaconProxy，下图是创建Account的步骤，涉及到Balancer项目逻辑。</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211117349.png" alt="image-20240121111747175"></p>
+<ol start="4">
+<li>随后攻击者给Proxy代理合约，授权了50个WETH，随后调用proxy代理合约的<code>deposit()</code>函数，给BeaconProxy攻击者对应的账户进行响应的存款，将对应的50个WETH转到BeaconProxy合约中，具体步骤如下：</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211123766.png" alt="image-20240121112351411"></p>
+<ol start="5">
+<li><p>随后攻击者调用Proxy代理合约的approve函数，即AccountManager合约进行授权，让AccountManager将存款的50个WETH，授权给Balancer: Vault合约进行相应的投资</p>
 </li>
-<li><p>但DFX合约的中并未对它的借贷方法和添加流动性方法进行重入限制。通俗来说，就是将借贷的钱抵押到同一个池子中，用户需要还款的闪电贷很少，但却有着大量的LP流动性证明</p>
+<li><p>随后攻击者调用的AccountManager的exec函数，执行相应的Balancer: Vault投资，判断是不是BeaconProxy合约等，然后调用BeaconProxy合约的exec函数，向Balancer的B-33WETH-33WBTC-33USDC池子中，存入50个WETH，进行相应的转账，攻击者获得221个B-33WETH-33WBTC-33USDC的LP</p>
 </li>
-</ul>
-<p>攻击的主要步骤为：</p>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211134707.png" alt="image-20240121113357220"></p>
+<ol start="7">
+<li>随后攻击者将相应的606个WBTC，10000个WETH和18,000,000个 USDC都给Balancer: Vault，该项目的合约进行相应的授权</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211139904.png" alt="image-20240121113943173"></p>
+<ol start="8">
+<li>随后攻击者绕过Sentiment项目，直接给Balancer: Vault该项目的B-33WETH-33WBTC-33USDC池进行投资，同样调用的是<code>onJoinPool</code>函数，这时候池子中的LP价格上升，攻击者有13w个LP</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211142981.png" alt="image-20240121114252559"></p>
+<ol start="9">
+<li>这时候攻击者调用Balancer: Vault的<code>exitPool</code>函数，想取走所有的存款，这是Balancer会进行相应的转账，将资金转给攻击者，而这时WETH的转账就触发了攻击者的fallback函数，这里注意取款的时候，会先对相应的LP进行销毁（关键步骤）</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211543577.png" alt="image-20240121154256697">10.  因为在4-6步中，攻击者在sentiment中存入了50个WETH，作为抵押物，攻击者能够进行不足额借贷，这是攻击者想借出461000USDC、361000USDT、81ETH、125000FRAX，看一下这里的借币逻辑，抵押物能借多少款，是有对应的限制</p>
+<ol start="11">
+<li>攻击者调用AccountManager合约中的borrow函数，以USDC为例进行说明，会直接调用到LUSD Coin (LUSDC)合约的lendTo函数，lendTo将将借款的USDC，减去部分手续费后，转给BeaconProxy，管理用户account的合约。</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211508106.png" alt="image-20240121150832950"></p>
+<ol start="12">
+<li><p>RiskEngine调用<code>isAccountHealthy</code>函数，检查用户的仓位是否健康，正常；攻击者手上因为抵押50WETH，现有有200多LP，随后通过OracleFacade合约，得到LP当前的价格，进入该函数看一下函数源码：</p>
 <ul>
-<li>调用flash函数借贷大量的USDC和XIDR</li>
-<li>后将借到的两种代币在同一个池子中进行抵押</li>
-<li>此时闪电贷前后的池子差，远远小于攻击者借出的资金，攻击者归还很少的资金即可</li>
-<li>但用户抵押的流动性还依然在它手中，移除流动性，获得大量的USDC和XIDR</li>
+<li>该函数先获得池子中token种类，以及对应的余额，即为B-33WETH-33WBTC-33USDC三种代币</li>
+<li>池子代币权重应该是相同的</li>
+<li>计算对应的LP价格，忽略乘除法，指数运算，关注变量在分子还是分母即可</li>
 </ul>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312181125560.png" alt="image-20231218112539740"></p>
+<p>$$<br>price &#x3D; \frac{Price(token_i)*Balance(token_i)….}{TotalSupply(LP token)}<br>$$</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">    function getPrice(address token) external view returns (uint) &#123;</span><br><span class="line">        (</span><br><span class="line">            address[] memory poolTokens,</span><br><span class="line">            uint256[] memory balances,</span><br><span class="line">        ) = vault.getPoolTokens(IPool(token).getPoolId());</span><br><span class="line"></span><br><span class="line">        uint256[] memory weights = IPool(token).getNormalizedWeights();</span><br><span class="line"></span><br><span class="line">        uint length = weights.length;</span><br><span class="line">        uint temp = 1e18;</span><br><span class="line">        uint invariant = 1e18;</span><br><span class="line">        for(uint i; i &lt; length; i++) &#123;</span><br><span class="line">            temp = temp.mulDown(</span><br><span class="line">                (oracleFacade.getPrice(poolTokens[i]).divDown(weights[i]))</span><br><span class="line">                .powDown(weights[i])</span><br><span class="line">            );</span><br><span class="line">            invariant = invariant.mulDown(</span><br><span class="line">                (balances[i] * 10 ** (18 - IERC20(poolTokens[i]).decimals()))</span><br><span class="line">                .powDown(weights[i])</span><br><span class="line">            );</span><br><span class="line">        &#125;</span><br><span class="line">        return invariant</span><br><span class="line">            .mulDown(temp)</span><br><span class="line">            .divDown(IPool(token).totalSupply());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211530739.png" alt="image-20240121153045993"></p>
+<ol start="13">
+<li><p>这里<code>isAccountHealthy</code>判断账户是否正常的逻辑是判断，用户的资产和用户想借贷的金额不能超出一个阈值，而用户的资产是和用户代币的数量和代币目前的价格计算决定的。通过上图，能发现LP的价格在经过Balancer直接存款后，是大大增加的</p>
+</li>
+<li><p>由于取款的时候，先将对应的LPtoken销毁，随后进行三种代币的转账，其中ETH触发fallback函数，这是攻击者通过Sentiment进行借款，通过上述公式，可见LPtoken数量减少，但这是Token的余额都还没有更新，导致LP代币的价格大幅度增加，用户可以借出超出它抵押的金额</p>
+</li>
+<li><p>在借出大量的资金后，攻击者将所有的代币都通过AccountManager合约，进行相应的投资，先进行approve操作，后调用exec函数，都投资到Aave中</p>
+</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211553791.png" alt="image-20240121155340470"></p>
+<ol start="16">
+<li>这里看一下AccountManager的六个exec都干了什么事情：将对应的稳定币都转换为aArbitrum上的币，并通过AccountManager合约转出给攻击者，为什么能转给攻击者？<ul>
+<li><code>isAccountHealthy</code>判断账户是否正常的逻辑是判断，用户的资产和用户想借贷的金额不能超出一个阈值，用户的LP资产价值大大增加，故可进行其它代币的转账操作</li>
+</ul>
+</li>
+<li>这是fallback函数执行结束，USDC也完成相应的转账，PoolBalanceChanged池子中的代币余额才发生变化，随后攻击者给Aave合约进行相应的代币授权，其要包含交易的手续费，Aave的闪电贷函数会自动进行扣款</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401211559941.png" alt="image-20240121155918090"></p>
+<h2 id="攻击原因分析："><a href="#攻击原因分析：" class="headerlink" title="攻击原因分析："></a>攻击原因分析：</h2><p>Read-only Reentrancy：攻击者调用一个项目合约中，攻击者操纵了合约中的一个状态，这时回调到了攻击者，另一个项目合约的状态依赖于该合约，这时攻击者回调进入另一合约，进行不当获利。</p>
+<ul>
+<li>Balancer项目在添加或移除流动性的时候，都是先进行LPtoken的余额变化，后进行转账，再更新池子余额，转账ETH，会进入攻击合约的fallback函数</li>
+<li>而在Sentiment协议中，用户抵押后能贷款的数量，是一定程度依赖于Balancer，而Balancer并未及时更新，被攻击者操作，导致比质押更多的资产被借出。</li>
+</ul>
+<p>ROR与典型重入的关键不同是，ROR不是发生在一个合约中，不是重入同一个合约，这样通过序列判断的方式就不太可能实现</p>
 
     </div>
 
@@ -372,16 +405,16 @@
       <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
-    </li>
-    <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\16\价格操纵攻击再理解\" rel="bookmark">价格操纵攻击再理解</a></div>
-    </li>
-    <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\21\Defi安全-Sentiment-Protocol攻击事件分析\" rel="bookmark">Defi安全--Sentiment Protocol攻击事件分析</a></div>
-    </li>
-    <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击foundry复现\" rel="bookmark">EGD价格操纵攻击foundry复现</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
     </li>
   </ul>
 
@@ -394,7 +427,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="https://emmanuelwh.github.io/2023/12/17/%E9%97%AA%E7%94%B5%E8%B4%B7%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="闪电贷原理及安全事件分析">https://emmanuelwh.github.io/2023/12/17/闪电贷原理及安全事件分析/</a>
+    <a href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="Defi安全--Sentiment Protocol攻击事件分析">https://emmanuelwh.github.io/2024/01/21/Defi安全-Sentiment-Protocol攻击事件分析/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
@@ -406,7 +439,7 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/Defi%E5%AE%89%E5%85%A8/" rel="tag"># Defi安全</a>
-              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
+              <a href="/tags/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="tag"># 安全事件分析</a>
           </div>
 
         
@@ -415,12 +448,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2023/12/16/%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%86%8D%E7%90%86%E8%A7%A3/" rel="prev" title="价格操纵攻击再理解">
-      <i class="fa fa-chevron-left"></i> 价格操纵攻击再理解
+    <a href="/2024/01/16/Defi%E5%AE%89%E5%85%A8-Orion-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="prev" title="Defi安全--Orion Protocol攻击事件分析">
+      <i class="fa fa-chevron-left"></i> Defi安全--Orion Protocol攻击事件分析
     </a></div>
       <div class="post-nav-item">
-    <a href="/2023/12/19/EGD%E4%BB%B7%E6%A0%BC%E6%93%8D%E7%BA%B5%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" rel="next" title="EGD价格操纵攻击原理分析--phalcon+etherscan">
-      EGD价格操纵攻击原理分析--phalcon+etherscan <i class="fa fa-chevron-right"></i>
+    <a href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="next" title="Defi安全--Cream Finance攻击事件分析">
+      Defi安全--Cream Finance攻击事件分析 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -482,7 +515,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%8C%BA%E5%9D%97%E9%93%BE%E4%B8%8A%E7%9A%84%E9%97%AA%E7%94%B5%E8%B4%B7%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">什么是区块链上的闪电贷：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">闪电贷具体实现示例：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Aave-v2"><span class="nav-number">2.1.</span> <span class="nav-text">Aave_v2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Uniswap-v2"><span class="nav-number">2.2.</span> <span class="nav-text">Uniswap_v2</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E7%9A%84%E6%94%BB%E5%87%BB%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">闪电贷的攻击类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DFX%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">DFX攻击事件分析</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1. Sentiment Protocol攻击事件相关信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">2. Sentiment Protocol攻击事件分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Sentiment%E9%A1%B9%E7%9B%AE%E7%AE%80%E4%BB%8B"><span class="nav-number">2.1.</span> <span class="nav-text">Sentiment项目简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">攻击流程详解：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%BB%E5%87%BB%E5%8E%9F%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">攻击原因分析：</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -740,61 +773,6 @@ window.addEventListener('pjax:success', () => {
   
 
   
-      
-
-<script>
-  if (typeof MathJax === 'undefined') {
-    window.MathJax = {
-      loader: {
-          load: ['[tex]/mhchem'],
-        source: {
-          '[tex]/amsCd': '[tex]/amscd',
-          '[tex]/AMScd': '[tex]/amscd'
-        }
-      },
-      tex: {
-        inlineMath: {'[+]': [['$', '$']]},
-          packages: {'[+]': ['mhchem']},
-        tags: 'ams'
-      },
-      options: {
-        renderActions: {
-          findScript: [10, doc => {
-            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-              const display = !!node.type.match(/; *mode=display/);
-              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-              const text = document.createTextNode('');
-              node.parentNode.replaceChild(text, node);
-              math.start = {node: text, delim: '', n: 0};
-              math.end = {node: text, delim: '', n: 0};
-              doc.math.push(math);
-            });
-          }, '', false],
-          insertedScript: [200, () => {
-            document.querySelectorAll('mjx-container').forEach(node => {
-              let target = node.parentNode;
-              if (target.nodeName.toLowerCase() === 'li') {
-                target.parentNode.classList.add('has-jax');
-              }
-            });
-          }, '', false]
-        }
-      }
-    };
-    (function () {
-      var script = document.createElement('script');
-      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    })();
-  } else {
-    MathJax.startup.document.state(0);
-    MathJax.texReset();
-    MathJax.typeset();
-  }
-</script>
-
-    
 
   
 
