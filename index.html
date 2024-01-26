@@ -139,7 +139,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">20</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">19</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -196,142 +196,6 @@
 
           <div class="content index posts-expand">
             
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/hometown.jpg">
-      <meta itemprop="name" content="Emmanuel">
-      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Defi安全--Cream Finance攻击事件分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2024-01-21 21:17:15" itemprop="dateCreated datePublished" datetime="2024-01-21T21:17:15+08:00">2024-01-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-01-23 22:14:39" itemprop="dateModified" datetime="2024-01-23T22:14:39+08:00">2024-01-23</time>
-              </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine: </span>
-    
-    <a title="valine" href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Cream-Finance%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  <br>
-            <span class="post-meta-item" title="Symbols count in article">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>565</span>
-            </span>
-            <span class="post-meta-item" title="Reading time">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="1、Cream-Finance攻击事件相关信息"><a href="#1、Cream-Finance攻击事件相关信息" class="headerlink" title="1、Cream Finance攻击事件相关信息"></a>1、Cream Finance攻击事件相关信息</h2><p>2021年8月30日，Defi抵押借贷平台Cream Finance在ETH上遭受攻击：</p>
-<ul>
-<li>攻击合约：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0x38c40427efbaae566407e4cde2a91947df0bd22b">Contract Address 攻击合约 | Etherscan</a></li>
-<li>攻击者地址：<a target="_blank" rel="noopener" href="https://etherscan.io/address/0xce1f4b4f17224ec6df16eeb1e3e5321c54ff6ede">Cream Finance Flashloan Attacker | Etherscan</a></li>
-<li>攻击交易：<a target="_blank" rel="noopener" href="https://etherscan.io/tx/0xa9a1b8ea288eb9ad315088f17f7c7386b9989c95b4d13c81b69d5ddad7ffe61e">Ethereum Transaction Hash (Txhash) Details | Etherscan</a></li>
-<li>Phalcon上交易调用序列：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/explorer/tx/eth/0xa9a1b8ea288eb9ad315088f17f7c7386b9989c95b4d13c81b69d5ddad7ffe61e">0xa9a1b8ea288eb9ad31 | Phalcon Explorer (blocksec.com)</a></li>
-</ul>
-<h2 id="2-Cream-Finance攻击流程详解"><a href="#2-Cream-Finance攻击流程详解" class="headerlink" title="2. Cream Finance攻击流程详解"></a>2. Cream Finance攻击流程详解</h2><ol>
-<li>在Etherscan的攻击交易中，查看对应的input data，发现是存在对应参数的：</li>
-</ol>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115395.png" alt="image-20240122101742962"></p>
-<ol start="2">
-<li>攻击者调用uniswapv2的闪电贷函数，借出500个WETH，随后回调到攻击者的uniswapV2Call函数中，攻击者将WETH对Cream.Finance: crAMP Token合约代币进行相应的授权，并将对应的WETH转账到自己的账户</li>
-</ol>
-<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202401221115404.png" alt="image-20240122111058593"></p>
-<ol start="3">
-<li>攻击者调用crETH的mint函数，实现相应的抵押，这里500WETH，应该是作为msg.value传入的</li>
-<li>调用crAMP池中的<code>borrow()</code>函数，想要借出19480000AMP，查看具体的函数源码：<ul>
-<li>调用borrowInternal()函数</li>
-</ul>
-</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">function borrow(uint256 borrowAmount) external returns (uint256) &#123;</span><br><span class="line">    return borrowInternal(borrowAmount, false);</span><br><span class="line">&#125;</span><br><span class="line">function borrowInternal(uint256 borrowAmount, bool isNative) internal nonReentrant returns (uint256) &#123;</span><br><span class="line">    uint256 error = accrueInterest();</span><br><span class="line">    if (error != uint256(Error.NO_ERROR)) &#123;</span><br><span class="line">        // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed</span><br><span class="line">        return fail(Error(error), FailureInfo.BORROW_ACCRUE_INTEREST_FAILED);</span><br><span class="line">    &#125;</span><br><span class="line">    // borrowFresh emits borrow-specific logs on errors, so we don&#x27;t need to</span><br><span class="line">    return borrowFresh(msg.sender, borrowAmount, isNative);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-    </div>
-
-    
-    
-    
-      
-
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
       
   
   
@@ -1345,6 +1209,119 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2023/12/16/PolyNetwork%E8%B7%A8%E9%93%BE%E6%B5%81%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/12/16/PolyNetwork%E8%B7%A8%E9%93%BE%E6%B5%81%E7%A8%8B/" class="post-title-link" itemprop="url">PolyNetwork跨链流程</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2023-12-16 11:42:01 / Modified: 11:43:18" itemprop="dateCreated datePublished" datetime="2023-12-16T11:42:01+08:00">2023-12-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6/" itemprop="url" rel="index"><span itemprop="name">智能合约</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%B7%A8%E9%93%BE%E6%A1%A5/" itemprop="url" rel="index"><span itemprop="name">跨链桥</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BB%A5%E5%A4%AA%E5%9D%8A/" itemprop="url" rel="index"><span itemprop="name">以太坊</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2023/12/16/PolyNetwork%E8%B7%A8%E9%93%BE%E6%B5%81%E7%A8%8B/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2023/12/16/PolyNetwork%E8%B7%A8%E9%93%BE%E6%B5%81%E7%A8%8B/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>摘要：Poly Network跨链流程</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/12/16/PolyNetwork%E8%B7%A8%E9%93%BE%E6%B5%81%E7%A8%8B/">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      
+
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
   <nav class="pagination">
@@ -1417,7 +1394,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -1510,12 +1487,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="Symbols count total">33k</span>
+    <span title="Symbols count total">32k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:01</span>
+    <span title="Reading time total">59 mins.</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
