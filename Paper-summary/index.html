@@ -30,7 +30,7 @@
 <meta property="og:description" content="eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022 问题：智能合约代码中可能包含的gas-related vulnerabilities，具体来说包含两种，一是unbound loop,循环无界，导致的超过block gas的限制，二是Dos with failed call，循环中包含许多外部调">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-12-15T14:24:25.000Z">
-<meta property="article:modified_time" content="2024-01-25T05:23:35.092Z">
+<meta property="article:modified_time" content="2024-03-08T08:08:14.432Z">
 <meta property="article:author" content="Emmanuel">
 <meta name="twitter:card" content="summary">
 
@@ -237,7 +237,7 @@
 <li>解决方法和思想：（不是很了解）利用形式化的方法对整个交易过程进行建模，相当于给每个地址和预言机维护状态，交易通过相应的状态机改变对应的状态，形式化验证的方法</li>
 <li>Evaluation：1.已有的13个Defi事件进行分析，2.时间和空间效率的验证，能否支持实时监测，3.能够扩展至防护验证的尝试</li>
 </ul>
-<h2 id="ISSTA-access-control"><a href="#ISSTA-access-control" class="headerlink" title="ISSTA- access control"></a>ISSTA- access control</h2><ul>
+<h2 id="ISSTA-Access-control"><a href="#ISSTA-Access-control" class="headerlink" title="ISSTA- Access control"></a>ISSTA- Access control</h2><ul>
 <li>问题：区块链智能合约中的access control漏洞，如何实现有效检测，与finding permission bugs是同样的问题，已有的方法存在静态范式定义和交易历史较少的问题</li>
 <li>事前对智能合约代码进行审计，属于事前智能合约漏洞审计</li>
 <li>解决方法和思想：通过图相似度的比较，在**文章中收集了大量审计报告的合约，我们认为其为高质量合约集，没有漏洞的，对检测合约进行相应的相似度匹配，具体来说，流程如下：<ul>
@@ -276,6 +276,23 @@
 </li>
 <li><p>Evaluation:  1. 收集的几十个ROR上测试， 2. 消融实验，重放交易、跨DApp静态分析, 多函数fuzz的影响，3.与现有的ityFuzz Sailfish进行对比</p>
 </li>
+</ul>
+<h2 id="ISSTA-Centralization-Defects"><a href="#ISSTA-Centralization-Defects" class="headerlink" title="ISSTA- Centralization Defects"></a>ISSTA- Centralization Defects</h2><ul>
+<li>问题：中心化缺陷问题，主要针对项目的创建者来说，这个项目的一些逻辑存不存在中心化的问题，根据已有的报告划分了七大类中心化缺陷，都比较常见。</li>
+<li>事前对智能合约的项目代码进行审计</li>
+<li>解决方法：静态分析，得到数据流关系，后计算语义senmatic特征和权限permission特征，预定义七类中心化缺陷的检测规则，就利用slither，然后定义规则，很简单，重要工作在前面的缺陷定义和数据集的收集吧</li>
+<li>Evaluation：1. 在已有的30多万合约上进行检测， 2. 人工抽样检测对应的误报和漏报，给出每种的具体原因，单独的一章Discussion，讨论case study, defects定义，可能的解决措施。</li>
+</ul>
+<h2 id="ISSTA-Price-manipulation"><a href="#ISSTA-Price-manipulation" class="headerlink" title="ISSTA- Price manipulation"></a>ISSTA- Price manipulation</h2><ul>
+<li>问题：价格操纵攻击的检测，与Defitainter一致，但这篇文章主要是从交易的行为的角度对价格操纵攻击进行检测</li>
+<li>支持实时对价格操纵攻击进行检测，并具有一定的分析结果（只能帮助安全审计师），无法真正实现提前预警</li>
+<li>解决方法：对区块链中价格操纵进行相应的建模，随后链上实时监控，如果发现了代币价格变化超出阈值，并且获得了利润则认为存在价格操纵攻击发生，并对该过程的可疑地址和资金流以及函数调用关系进行分析<ul>
+<li>对价格操纵攻击各个过程进行状态机建模，normal、abnormal、price read、profit等</li>
+<li>将各种主流的Defi主流项目的价格计算协议融入到Defort的价格计算机制中，对Defi项目利用字节码相似度比较，签名库匹配对应的价格计算函数签名，确定价格计算机制，并定义相应的阈值，若代币比率超过阈值，状态机变为abnormal状态，计算模型转换到异常状态后所有与 DeFi 应用交互的账户的利润。判断获利的过程。</li>
+<li>在检测过程中，记录相应的可疑地址、资金流关系以及函数调用，便于对该价格操纵事件进行全面的分析和认识。</li>
+</ul>
+</li>
+<li>Evaluation:  1. 收集了主流的500多个Defi，进行攻击检测精度和误报率的测试，分析对应的原因，2. 对Defort的关键函数，资金流的分析结果，结合web3安全公司报告进行分析，3.实时检测相应的价格操纵攻击，并对相应的原因进行分析</li>
 </ul>
 
       </div>
@@ -340,7 +357,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts%E2%80%93ISSTA2022"><span class="nav-number">1.</span> <span class="nav-text">eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract%E2%80%93ISSTA2023"><span class="nav-number">2.</span> <span class="nav-text">Toward Automated Detecting Unanticipated Price Feed in Smart Contract–ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-access-control"><span class="nav-number">3.</span> <span class="nav-text">ISSTA- access control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis%E2%80%93ISSTA2023"><span class="nav-number">4.</span> <span class="nav-text">SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis–ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Read-Only-Reentrancy"><span class="nav-number">5.</span> <span class="nav-text">ISSTA- Read-Only Reentrancy</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts%E2%80%93ISSTA2022"><span class="nav-number">1.</span> <span class="nav-text">eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract%E2%80%93ISSTA2023"><span class="nav-number">2.</span> <span class="nav-text">Toward Automated Detecting Unanticipated Price Feed in Smart Contract–ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Access-control"><span class="nav-number">3.</span> <span class="nav-text">ISSTA- Access control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis%E2%80%93ISSTA2023"><span class="nav-number">4.</span> <span class="nav-text">SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis–ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Read-Only-Reentrancy"><span class="nav-number">5.</span> <span class="nav-text">ISSTA- Read-Only Reentrancy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Centralization-Defects"><span class="nav-number">6.</span> <span class="nav-text">ISSTA- Centralization Defects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Price-manipulation"><span class="nav-number">7.</span> <span class="nav-text">ISSTA- Price manipulation</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
