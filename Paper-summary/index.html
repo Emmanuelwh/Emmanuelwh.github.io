@@ -22,12 +22,12 @@
     var CONFIG = {"hostname":"emmanuelwh.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":280,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":{"valine":{"order":-1}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022 问题：智能合约代码中可能包含的gas-related vulnerabilities，具体来说包含两种，一是unbound loop,循环无界，导致的超过block gas的限制，二是Dos with failed call，循环中包含许多外部调">
+  <meta name="description" content="eTainter: detecting gas-related vulnerabilities in smart contracts—ISSTA2022 问题：智能合约代码中可能包含的gas-related vulnerabilities，具体来说包含两种，一是unbound loop,循环无界，导致的超过block gas的限制，二是Dos with failed call，循环中包含许多外部调">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Paper summary">
 <meta property="og:url" content="https://emmanuelwh.github.io/Paper-summary/index.html">
 <meta property="og:site_name" content="来自门头沟学院的Emmanuel">
-<meta property="og:description" content="eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022 问题：智能合约代码中可能包含的gas-related vulnerabilities，具体来说包含两种，一是unbound loop,循环无界，导致的超过block gas的限制，二是Dos with failed call，循环中包含许多外部调">
+<meta property="og:description" content="eTainter: detecting gas-related vulnerabilities in smart contracts—ISSTA2022 问题：智能合约代码中可能包含的gas-related vulnerabilities，具体来说包含两种，一是unbound loop,循环无界，导致的超过block gas的限制，二是Dos with failed call，循环中包含许多外部调">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-12-15T14:24:25.000Z">
 <meta property="article:modified_time" content="2024-03-18T03:29:59.588Z">
@@ -132,7 +132,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">11</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -142,7 +142,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">21</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">23</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -222,7 +222,7 @@
       
       
       <div class="post-body">
-          <h2 id="eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts–ISSTA2022"><a href="#eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts–ISSTA2022" class="headerlink" title="eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022"></a>eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022</h2><ul>
+          <h2 id="eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts—ISSTA2022"><a href="#eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts—ISSTA2022" class="headerlink" title="eTainter: detecting gas-related vulnerabilities in smart contracts—ISSTA2022"></a>eTainter: detecting gas-related vulnerabilities in smart contracts—ISSTA2022</h2><ul>
 <li>问题：智能合约代码中可能包含的gas-related vulnerabilities，具体来说包含两种，一是unbound loop,循环无界，导致的超过block gas的限制，二是Dos with failed call，循环中包含许多外部调用，一个抛出就导致全部revert。</li>
 <li>事前对智能合约代码进行审计，属于事前智能合约漏洞审计</li>
 <li>解决方法和思想：认为这些gas-releated漏洞的真正原因是，其中一些步骤攻击者可控，故采用污点分析</li>
@@ -231,7 +231,7 @@
 <ul>
 <li>Evaluation：1. 已有工具对比，2. overhead，  3.real-world contracts</li>
 </ul>
-<h2 id="Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract–ISSTA2023"><a href="#Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract–ISSTA2023" class="headerlink" title="Toward Automated Detecting Unanticipated Price Feed in Smart Contract–ISSTA2023"></a>Toward Automated Detecting Unanticipated Price Feed in Smart Contract–ISSTA2023</h2><ul>
+<h2 id="Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract—ISSTA2023"><a href="#Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract—ISSTA2023" class="headerlink" title="Toward Automated Detecting Unanticipated Price Feed in Smart Contract—ISSTA2023"></a>Toward Automated Detecting Unanticipated Price Feed in Smart Contract—ISSTA2023</h2><ul>
 <li>问题：区块链价格预言机导致的异常价格喂价安全问题，将价格预言机分为DON，DEX，internal三种分别阐述对应的预言机特点，异常价格喂价的原因不单单是由合约代码导致，VeriOracle将合约源码和交易序列结合进行分析</li>
 <li>实时地对区块链交易进行检测，属于智能合约异常价格喂价实时监测</li>
 <li>解决方法和思想：（不是很了解）利用形式化的方法对整个交易过程进行建模，相当于给每个地址和预言机维护状态，交易通过相应的状态机改变对应的状态，形式化验证的方法</li>
@@ -248,7 +248,7 @@
 </li>
 <li>Evaluation：1.smartbugs数据集上检测效果测试，2.与state-of-the-art工具进行对比，3.消融实验</li>
 </ul>
-<h2 id="SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis–ISSTA2023"><a href="#SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis–ISSTA2023" class="headerlink" title="SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis–ISSTA2023"></a>SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis–ISSTA2023</h2><ul>
+<h2 id="SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis—ISSTA2023"><a href="#SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis—ISSTA2023" class="headerlink" title="SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis—ISSTA2023"></a>SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis—ISSTA2023</h2><ul>
 <li>问题：定义了智能合约中的一类问题，state-revert vulnerabilities漏洞，现有的研究都只包含一部分的漏洞，这篇文章主要针对SRV的两种场景，都是state-revert控制语句导致的（require，assert等），profit-gain和Deny-of-service两种情况，ISSTA2022的etainter就针对一部分gas-related的DOS攻击</li>
 <li>也是属于事前对智能合约代码进行审计，但用到了历史交易的信息。</li>
 <li>解决方法和思想：构建细粒度的状态依赖图，并定义相应的SRV indicators，后利用污点分析确定相应的漏洞代码，具体流程如下：<ul>
@@ -266,16 +266,14 @@
 </li>
 <li><p>事前对智能合约代码进行审计</p>
 </li>
-<li><p>解决方法：构建大规模的DApp数据库，进行细粒度的上下文分析，进行跨DApp的静态分析，构建合约之间的依赖关系，寻找entry point入口点，通过Fuzz进行相应的ROR的验证，路径满足相应的条件。</p>
-<ul>
+<li>解决方法：构建大规模的DApp数据库，进行细粒度的上下文分析，进行跨DApp的静态分析，构建合约之间的依赖关系，寻找entry point入口点，通过Fuzz进行相应的ROR的验证，路径满足相应的条件。<ul>
 <li>提出了一种根据DApp builder划分DApp的方法，获得了DApp的数据集</li>
 <li>在ItyFuzz的基础上，重放交易，获得细粒度的上下文关系</li>
 <li>在slither基础上，执行细粒度的静态分析，建立对应流图，寻找可能的entry point</li>
 <li>进行相应的fuzz，路径验证判断是否为ROR</li>
 </ul>
 </li>
-<li><p>Evaluation:  1. 收集的几十个ROR上测试， 2. 消融实验，重放交易、跨DApp静态分析, 多函数fuzz的影响，3.与现有的ityFuzz Sailfish进行对比</p>
-</li>
+<li>Evaluation:  1. 收集的几十个ROR上测试， 2. 消融实验，重放交易、跨DApp静态分析, 多函数fuzz的影响，3.与现有的ityFuzz Sailfish进行对比</li>
 </ul>
 <h2 id="ISSTA-Centralization-Defects"><a href="#ISSTA-Centralization-Defects" class="headerlink" title="ISSTA- Centralization Defects"></a>ISSTA- Centralization Defects</h2><ul>
 <li>问题：中心化缺陷问题，主要针对项目的创建者来说，这个项目的一些逻辑存不存在中心化的问题，根据已有的报告划分了七大类中心化缺陷，都比较常见。</li>
@@ -294,8 +292,8 @@
 </li>
 <li>Evaluation:  1. 收集了主流的500多个Defi，进行攻击检测精度和误报率的测试，分析对应的原因，2. 对Defort的关键函数，资金流的分析结果，结合web3安全公司报告进行分析，3.实时检测相应的价格操纵攻击，并对相应的原因进行分析</li>
 </ul>
-<h2 id="GPTScan-Detecting-Logic-Vulnerabilities-in-Smart-Contracts-by-Combining-GPT-with-Program-Analysis–ICSE2024"><a href="#GPTScan-Detecting-Logic-Vulnerabilities-in-Smart-Contracts-by-Combining-GPT-with-Program-Analysis–ICSE2024" class="headerlink" title="GPTScan: Detecting Logic Vulnerabilities in Smart Contracts by Combining GPT with Program Analysis–ICSE2024"></a>GPTScan: Detecting Logic Vulnerabilities in Smart Contracts by Combining GPT with Program Analysis–ICSE2024</h2><ul>
-<li>问题：针对逻辑相关的漏洞检测，划分了十类漏洞，包括front-running、price manipulation以及access control等相关的，比较零散，统一归结定义为一类逻辑漏洞–logic vulnerabilities</li>
+<h2 id="GPTScan-Detecting-Logic-Vulnerabilities-in-Smart-Contracts-by-Combining-GPT-with-Program-Analysis—ICSE2024"><a href="#GPTScan-Detecting-Logic-Vulnerabilities-in-Smart-Contracts-by-Combining-GPT-with-Program-Analysis—ICSE2024" class="headerlink" title="GPTScan: Detecting Logic Vulnerabilities in Smart Contracts by Combining GPT with Program Analysis—ICSE2024"></a>GPTScan: Detecting Logic Vulnerabilities in Smart Contracts by Combining GPT with Program Analysis—ICSE2024</h2><ul>
+<li>问题：针对逻辑相关的漏洞检测，划分了十类漏洞，包括front-running、price manipulation以及access control等相关的，比较零散，统一归结定义为一类逻辑漏洞—logic vulnerabilities</li>
 <li>事前对智能合约进行审计分析，判断有没有漏洞</li>
 <li>解决方法：首先是依据静态分析技术对智能合约以及函数进行删选，找出可疑的函数及其依赖相关的函数；随后对其定义的十种漏洞类型，进行场景和漏洞范式的具体定义，随后可疑的关键变量和状态交给静态分析模块进行漏洞的确认<ul>
 <li>函数过滤模块：先将不必要的文件和函数去除，对openzeppelin的标准函数进行匹配，作为白名单，函数可达性的分析与判断</li>
@@ -305,7 +303,7 @@
 </li>
 <li>Evaluation：在Top200、web3Bugs以及Defihacks上进行实验。1. 三个数据中的误报；2. 检测结果的准确率；3. 消融实验，静态分析结果减少了多少误报；4. 漏洞检测的速度以及相应的开销；5. web3Bugs中真实发现的漏洞</li>
 </ul>
-<h2 id="LookAhead-Preventing-DeFi-Attacks-via-Unveiling-Adversarial-Contracts-–-arxiv"><a href="#LookAhead-Preventing-DeFi-Attacks-via-Unveiling-Adversarial-Contracts-–-arxiv" class="headerlink" title="LookAhead: Preventing DeFi Attacks via Unveiling Adversarial Contracts – arxiv"></a>LookAhead: Preventing DeFi Attacks via Unveiling Adversarial Contracts – arxiv</h2><ul>
+<h2 id="LookAhead-Preventing-DeFi-Attacks-via-Unveiling-Adversarial-Contracts-—-arxiv"><a href="#LookAhead-Preventing-DeFi-Attacks-via-Unveiling-Adversarial-Contracts-—-arxiv" class="headerlink" title="LookAhead: Preventing DeFi Attacks via Unveiling Adversarial Contracts — arxiv"></a>LookAhead: Preventing DeFi Attacks via Unveiling Adversarial Contracts — arxiv</h2><ul>
 <li>问题：对区块链中攻击者部署的攻击合约，利用监督机器学习方法进行检测，提前识别攻击活跃，进行预警</li>
 <li>实时对攻击者部署的攻击合约进行检测，但是应该没有做到实时监测的能力和效果</li>
 <li>解决方法：依据对攻击合约和正常合约的观察，定义了六大类特征，每类特征的定义都有相应的统计数据支撑，依据RPC、Explorer以及decompilation三种方式获取合约的特征数据，随后构建分类器，训练多种机器学习模型，进行比较</li>
@@ -375,7 +373,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts%E2%80%93ISSTA2022"><span class="nav-number">1.</span> <span class="nav-text">eTainter: detecting gas-related vulnerabilities in smart contracts–ISSTA2022</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract%E2%80%93ISSTA2023"><span class="nav-number">2.</span> <span class="nav-text">Toward Automated Detecting Unanticipated Price Feed in Smart Contract–ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Access-control"><span class="nav-number">3.</span> <span class="nav-text">ISSTA- Access control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis%E2%80%93ISSTA2023"><span class="nav-number">4.</span> <span class="nav-text">SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis–ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Read-Only-Reentrancy"><span class="nav-number">5.</span> <span class="nav-text">ISSTA- Read-Only Reentrancy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Centralization-Defects"><span class="nav-number">6.</span> <span class="nav-text">ISSTA- Centralization Defects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Price-manipulation"><span class="nav-number">7.</span> <span class="nav-text">ISSTA- Price manipulation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPTScan-Detecting-Logic-Vulnerabilities-in-Smart-Contracts-by-Combining-GPT-with-Program-Analysis%E2%80%93ICSE2024"><span class="nav-number">8.</span> <span class="nav-text">GPTScan: Detecting Logic Vulnerabilities in Smart Contracts by Combining GPT with Program Analysis–ICSE2024</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LookAhead-Preventing-DeFi-Attacks-via-Unveiling-Adversarial-Contracts-%E2%80%93-arxiv"><span class="nav-number">9.</span> <span class="nav-text">LookAhead: Preventing DeFi Attacks via Unveiling Adversarial Contracts – arxiv</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#eTainter-detecting-gas-related-vulnerabilities-in-smart-contracts%E2%80%94ISSTA2022"><span class="nav-number">1.</span> <span class="nav-text">eTainter: detecting gas-related vulnerabilities in smart contracts—ISSTA2022</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Toward-Automated-Detecting-Unanticipated-Price-Feed-in-Smart-Contract%E2%80%94ISSTA2023"><span class="nav-number">2.</span> <span class="nav-text">Toward Automated Detecting Unanticipated Price Feed in Smart Contract—ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Access-control"><span class="nav-number">3.</span> <span class="nav-text">ISSTA- Access control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SmartState-Detecting-State-Reverting-Vulnerabilities-in-Smart-Contracts-via-Fine-Grained-State-Dependency-Analysis%E2%80%94ISSTA2023"><span class="nav-number">4.</span> <span class="nav-text">SmartState: Detecting State-Reverting Vulnerabilities in Smart Contracts via Fine-Grained State-Dependency Analysis—ISSTA2023</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Read-Only-Reentrancy"><span class="nav-number">5.</span> <span class="nav-text">ISSTA- Read-Only Reentrancy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Centralization-Defects"><span class="nav-number">6.</span> <span class="nav-text">ISSTA- Centralization Defects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ISSTA-Price-manipulation"><span class="nav-number">7.</span> <span class="nav-text">ISSTA- Price manipulation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPTScan-Detecting-Logic-Vulnerabilities-in-Smart-Contracts-by-Combining-GPT-with-Program-Analysis%E2%80%94ICSE2024"><span class="nav-number">8.</span> <span class="nav-text">GPTScan: Detecting Logic Vulnerabilities in Smart Contracts by Combining GPT with Program Analysis—ICSE2024</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LookAhead-Preventing-DeFi-Attacks-via-Unveiling-Adversarial-Contracts-%E2%80%94-arxiv"><span class="nav-number">9.</span> <span class="nav-text">LookAhead: Preventing DeFi Attacks via Unveiling Adversarial Contracts — arxiv</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -391,7 +389,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -404,7 +402,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -484,12 +482,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="Symbols count total">33k</span>
+    <span title="Symbols count total">35k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:01</span>
+    <span title="Reading time total">1:03</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

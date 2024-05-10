@@ -37,8 +37,8 @@
 <meta property="article:published_time" content="2023-12-16T13:34:53.000Z">
 <meta property="article:modified_time" content="2023-12-17T03:50:54.901Z">
 <meta property="article:author" content="Emmanuel">
-<meta property="article:tag" content="区块链安全">
 <meta property="article:tag" content="Defi安全">
+<meta property="article:tag" content="区块链安全">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312162145635.png">
 
@@ -139,7 +139,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">10</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">11</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -149,7 +149,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">21</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">23</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -332,16 +332,11 @@
 </li>
 <li><p>用户通过闪电贷兑换了大量的BNB和USDT</p>
 </li>
-<li><p>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</p>
-</li>
-<li><p>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</p>
-</li>
-<li><p>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</p>
-</li>
-<li><p>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></p>
-</li>
-<li><p><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</p>
-</li>
+<li>第二笔交易闪电贷，向池子中添加大量流动性，同时调用getReward()函数</li>
+<li>首先将LP转到WBNB-USDT池子中移除流动性，池子中有大量BNB和USDT</li>
+<li>随后大量的BNB和USDT转化为WBNB-BUNNY流动性，WBNB池子中WBNB数量激增</li>
+<li>随后根据得到的WBNB-BUNNY的LP数量，<code>valueOfAsset函数计算LP价值</code></li>
+<li><code>问题就出在valueOfAsset进行LP价值计算的时候，通过WBNB-BUNNY池子中的WBNB实时数量计算</code>，导致单个LP价值显著增加</li>
 </ul>
 <h2 id="漏洞函数"><a href="#漏洞函数" class="headerlink" title="漏洞函数"></a>漏洞函数</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202312171136385.png" alt="image-20231217113643150"></p>
 <p>getReserve()函数计算得到池中BNByue，后直接用以计算LP相对于BNB的价值</p>
@@ -368,19 +363,19 @@
   <div class="popular-posts-header">Related Posts</div>
   <ul class="popular-posts">
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
     </li>
     <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="\2023\12\17\闪电贷原理及安全事件分析\" rel="bookmark">闪电贷原理及安全事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\07\Defi安全-Monox攻击事件Foundry复现\" rel="bookmark">Defi安全-Monox攻击事件Foundry复现</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\23\Defi安全-Monox攻击事件分析\" rel="bookmark">Defi安全--Monox攻击事件分析--phalcon+etherscan</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\21\Defi安全-Sentiment-Protocol攻击事件分析\" rel="bookmark">Defi安全--Sentiment Protocol攻击事件分析</a></div>
     </li>
   </ul>
 
@@ -404,8 +399,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
               <a href="/tags/Defi%E5%AE%89%E5%85%A8/" rel="tag"># Defi安全</a>
+              <a href="/tags/%E5%8C%BA%E5%9D%97%E9%93%BE%E5%AE%89%E5%85%A8/" rel="tag"># 区块链安全</a>
           </div>
 
         
@@ -497,7 +492,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -510,7 +505,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -590,12 +585,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="Symbols count total">33k</span>
+    <span title="Symbols count total">35k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:01</span>
+    <span title="Reading time total">1:03</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
