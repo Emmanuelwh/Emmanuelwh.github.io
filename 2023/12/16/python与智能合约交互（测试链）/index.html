@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">23</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">24</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -272,7 +272,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>988</span>
+              <span>1k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
@@ -296,15 +296,23 @@
 <h1 id="2-测试链和节点数据"><a href="#2-测试链和节点数据" class="headerlink" title="2. 测试链和节点数据"></a>2. 测试链和节点数据</h1><p>这里我们用的以太坊的测试链Goerli，Sepolia也可以用，以及自己通过geth，ganache搭建的私链都可以来测试<br>先尝试着连接区块链：</p>
 <ul>
 <li>测试链的话，去infura上申请个节点，会给你个url，相当于可以通过这个节点访问测试链上数据</li>
-<li>私链的话，直接连接服务器或本机的某个端口就行，一般是7545 or 8545<h1 id="3-web3-py的使用"><a href="#3-web3-py的使用" class="headerlink" title="3. web3.py的使用"></a>3. web3.py的使用</h1>首先安装web3<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install web3</span><br></pre></td></tr></table></figure>
-<h2 id="3-1-连接区块链"><a href="#3-1-连接区块链" class="headerlink" title="3.1 连接区块链"></a>3.1 连接区块链</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">w3 = Web3(Web3.HTTPProvider(url))</span><br><span class="line"><span class="built_in">print</span>(w3.is_connected())  <span class="comment">##判断是否连接上</span></span><br></pre></td></tr></table></figure>
-<h2 id="3-2-部署合约"><a href="#3-2-部署合约" class="headerlink" title="3.2 部署合约"></a>3.2 部署合约</h2><h3 id="3-2-1-获取abi和bytecode"><a href="#3-2-1-获取abi和bytecode" class="headerlink" title="3.2.1 获取abi和bytecode:"></a>3.2.1 获取abi和bytecode:</h3>web3.py在部署合约之前需要通过对源码进行解析得到其abi和bytecode<br><strong>abi</strong>：abi主要包含的合约的函数调用信息，即函数参数，返回值，签名等信息<br><strong>bytecode</strong>：bytecode是指源码进行编译得到的二进制代码<br>python可以通过==solcx==库中的==compile_standard==函数进行合约解析，得到合约的abi和字节码，在创建合约，部署合约时会用到。<h3 id="3-2-2-部署合约："><a href="#3-2-2-部署合约：" class="headerlink" title="3.2.2 部署合约："></a>3.2.2 部署合约：</h3>部署合约则主要通过官方封装的标准函数来实现，web3.py，web3.js的相关函数与geth官方的函数很像。</li>
-<li>构建部署合约这一交易<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Contract = w3.eth.contract(abi = abi, bytecode = bytecode)</span><br><span class="line">nonce = w3.eth.get_transaction_count(Goerli_address)</span><br><span class="line">transaction = Contract.constructor().build_transaction(</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">        <span class="string">&quot;from&quot;</span>: Goerli_address,</span><br><span class="line">        <span class="string">&quot;nonce&quot;</span>: nonce</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
-<li>签名发布该交易<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = Goerli_privateKey)   </span><br><span class="line"><span class="comment">##账户私钥对交易进行验证</span></span><br><span class="line">tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)    </span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)</span><br><span class="line"><span class="comment">##根据交易哈希获取交易凭证，可获取部署合约的地址</span></span><br></pre></td></tr></table></figure>
-<h3 id="3-2-3-调用合约中的函数"><a href="#3-2-3-调用合约中的函数" class="headerlink" title="3.2.3 调用合约中的函数"></a>3.2.3 调用合约中的函数</h3>以太坊中调用函数主要是通过call的方式调用函数签名进行实现。<br>可见毕设之前总结的文章<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_53689197/article/details/129721360?spm=1001.2014.3001.5502">solidity合约函数调用</a></li>
+<li>私链的话，直接连接服务器或本机的某个端口就行，一般是7545 or 8545</li>
 </ul>
-<p>这里为了方便起见，我们用函数名直接对函数进行调用<br>这里以调用<strong>storeUserData</strong>这一函数为例，进行说明：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Contract = w3.eth.contract(address = contract_address, abi = abi) </span><br><span class="line">nonce = w3.eth.get_transaction_count(call_address)</span><br><span class="line">transaction = Contract.functions.storeUserData(dataHash).build_transaction(</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="string">&quot;gas&quot;</span>: <span class="number">1000000</span>,</span><br><span class="line">       <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">       <span class="string">&quot;from&quot;</span>: call_address,</span><br><span class="line">       <span class="string">&quot;nonce&quot;</span>: nonce </span><br><span class="line">   &#125;</span><br><span class="line">)</span><br><span class="line"><span class="comment">## dataHash这里为storeUserData需要传入的参数</span></span><br><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = addressKey)</span><br><span class="line"><span class="comment">##签名该函数调用的交易</span></span><br><span class="line">send_tx = w3.eth.send_raw_transaction(signed_txn.rawTransaction)</span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)</span><br><span class="line"><span class="comment">## 根据交易哈希，获取交易凭证，后对交易凭证进行分析处理</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="3-2-4-Event的监听"><a href="#3-2-4-Event的监听" class="headerlink" title="3.2.4 Event的监听"></a>3.2.4 Event的监听</h3><p>因为后续实现对函数抛出的event进行实时监听，上述代码中获得了函数调用交易的tx_receipt，即交易凭证，其中就包含了event的log信息。<br>代码如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">logs = Contract.events.AccessRequested().process_receipt(tx_receipt)</span><br><span class="line"><span class="comment">## AccessRequested()为对应的事件event</span></span><br></pre></td></tr></table></figure><br>随后对logs进行处理，即可实现实时监听合约的event抛出了</p>
+<h1 id="3-web3-py的使用"><a href="#3-web3-py的使用" class="headerlink" title="3. web3.py的使用"></a>3. web3.py的使用</h1><p>首先安装web3</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install web3</span><br></pre></td></tr></table></figure>
+<h2 id="3-1-连接区块链"><a href="#3-1-连接区块链" class="headerlink" title="3.1 连接区块链"></a>3.1 连接区块链</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">w3 = Web3(Web3.HTTPProvider(url))</span><br><span class="line"><span class="built_in">print</span>(w3.is_connected())  <span class="comment">##判断是否连接上</span></span><br></pre></td></tr></table></figure>
+<h2 id="3-2-部署合约"><a href="#3-2-部署合约" class="headerlink" title="3.2 部署合约"></a>3.2 部署合约</h2><h3 id="3-2-1-获取abi和bytecode"><a href="#3-2-1-获取abi和bytecode" class="headerlink" title="3.2.1 获取abi和bytecode:"></a>3.2.1 获取abi和bytecode:</h3><p>web3.py在部署合约之前需要通过对源码进行解析得到其abi和bytecode<br><strong>abi</strong>：abi主要包含的合约的函数调用信息，即函数参数，返回值，签名等信息<br><strong>bytecode</strong>：bytecode是指源码进行编译得到的二进制代码<br>python可以通过&#x3D;&#x3D;solcx&#x3D;&#x3D;库中的&#x3D;&#x3D;compile_standard&#x3D;&#x3D;函数进行合约解析，得到合约的abi和字节码，在创建合约，部署合约时会用到。</p>
+<h3 id="3-2-2-部署合约："><a href="#3-2-2-部署合约：" class="headerlink" title="3.2.2 部署合约："></a>3.2.2 部署合约：</h3><p>部署合约则主要通过官方封装的标准函数来实现，web3.py，web3.js的相关函数与geth官方的函数很像。</p>
+<ul>
+<li>构建部署合约这一交易<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Contract = w3.eth.contract(abi = abi, bytecode = bytecode)</span><br><span class="line">nonce = w3.eth.get_transaction_count(Goerli_address)</span><br><span class="line">transaction = Contract.constructor().build_transaction(</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">        <span class="string">&quot;from&quot;</span>: Goerli_address,</span><br><span class="line">        <span class="string">&quot;nonce&quot;</span>: nonce</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></li>
+<li>签名发布该交易<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = Goerli_privateKey)   </span><br><span class="line"><span class="comment">##账户私钥对交易进行验证</span></span><br><span class="line">tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)    </span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)</span><br><span class="line"><span class="comment">##根据交易哈希获取交易凭证，可获取部署合约的地址</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="3-2-3-调用合约中的函数"><a href="#3-2-3-调用合约中的函数" class="headerlink" title="3.2.3 调用合约中的函数"></a>3.2.3 调用合约中的函数</h3><p>以太坊中调用函数主要是通过call的方式调用函数签名进行实现。<br>可见毕设之前总结的文章<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_53689197/article/details/129721360?spm=1001.2014.3001.5502">solidity合约函数调用</a></p>
+<p>这里为了方便起见，我们用函数名直接对函数进行调用<br>这里以调用<strong>storeUserData</strong>这一函数为例，进行说明：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Contract = w3.eth.contract(address = contract_address, abi = abi) </span><br><span class="line">nonce = w3.eth.get_transaction_count(call_address)</span><br><span class="line">transaction = Contract.functions.storeUserData(dataHash).build_transaction(</span><br><span class="line">   &#123;</span><br><span class="line">       <span class="string">&quot;gas&quot;</span>: <span class="number">1000000</span>,</span><br><span class="line">       <span class="string">&quot;gasPrice&quot;</span>: w3.eth.gas_price,</span><br><span class="line">       <span class="string">&quot;from&quot;</span>: call_address,</span><br><span class="line">       <span class="string">&quot;nonce&quot;</span>: nonce </span><br><span class="line">   &#125;</span><br><span class="line">)</span><br><span class="line"><span class="comment">## dataHash这里为storeUserData需要传入的参数</span></span><br><span class="line">signed_txn = w3.eth.account.sign_transaction(transaction, private_key = addressKey)</span><br><span class="line"><span class="comment">##签名该函数调用的交易</span></span><br><span class="line">send_tx = w3.eth.send_raw_transaction(signed_txn.rawTransaction)</span><br><span class="line">tx_receipt = w3.eth.wait_for_transaction_receipt(send_tx)</span><br><span class="line"><span class="comment">## 根据交易哈希，获取交易凭证，后对交易凭证进行分析处理</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-2-4-Event的监听"><a href="#3-2-4-Event的监听" class="headerlink" title="3.2.4 Event的监听"></a>3.2.4 Event的监听</h3><p>因为后续实现对函数抛出的event进行实时监听，上述代码中获得了函数调用交易的tx_receipt，即交易凭证，其中就包含了event的log信息。<br>代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">logs = Contract.events.AccessRequested().process_receipt(tx_receipt)</span><br><span class="line"><span class="comment">## AccessRequested()为对应的事件event</span></span><br></pre></td></tr></table></figure>
+<p>随后对logs进行处理，即可实现实时监听合约的event抛出了</p>
 
     </div>
 
@@ -321,10 +329,10 @@
       <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\07\Defi安全-Monox攻击事件Foundry复现\" rel="bookmark">Defi安全-Monox攻击事件Foundry复现</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\23\Defi安全-Monox攻击事件分析\" rel="bookmark">Defi安全--Monox攻击事件分析--phalcon+etherscan</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\23\Defi安全-Monox攻击事件分析\" rel="bookmark">Defi安全--Monox攻击事件分析--phalcon+etherscan</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\07\Defi安全-Monox攻击事件Foundry复现\" rel="bookmark">Defi安全-Monox攻击事件Foundry复现</a></div>
     </li>
     <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="\2023\12\15\foundry使用(一)--foundry环境搭建\" rel="bookmark">foundry使用一</a></div>
@@ -444,7 +452,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -542,7 +550,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:03</span>
+    <span title="Reading time total">1:04</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

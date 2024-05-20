@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">23</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">24</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -295,7 +295,9 @@
 
       
         <h1 id="1-Foundry环境搭建："><a href="#1-Foundry环境搭建：" class="headerlink" title="1. Foundry环境搭建："></a>1. Foundry环境搭建：</h1><h2 id="1-1-拉取Foundry-镜像"><a href="#1-1-拉取Foundry-镜像" class="headerlink" title="1.1 拉取Foundry 镜像"></a>1.1 拉取<code>Foundry</code> 镜像</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull ghcr.io/foundry-rs/foundry:latest</span><br></pre></td></tr></table></figure>
+
 <h2 id="1-2-以sh形式，创建一个新的容器，并运行对应的容器"><a href="#1-2-以sh形式，创建一个新的容器，并运行对应的容器" class="headerlink" title="1.2 以sh形式，创建一个新的容器，并运行对应的容器"></a>1.2 以sh形式，创建一个新的容器，并运行对应的容器</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker <span class="keyword">run</span><span class="language-bash"> -d -v /local_dir:/docker_dir -it --name new_name image_name /bin/sh</span></span><br></pre></td></tr></table></figure>
+
 <ul>
 <li><code>-d</code>：让容器在后台运行</li>
 <li><code>-v</code>：用以挂载卷</li>
@@ -303,6 +305,7 @@
 <li><code>--name</code> ：给容器命名</li>
 </ul>
 <h2 id="1-3-查看容器的是否运行，以及容器id"><a href="#1-3-查看容器的是否运行，以及容器id" class="headerlink" title="1.3 查看容器的是否运行，以及容器id"></a>1.3 查看容器的是否运行，以及容器id</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker ps</span><br></pre></td></tr></table></figure>
+
 <h2 id="1-4-进行容器交互界面"><a href="#1-4-进行容器交互界面" class="headerlink" title="1.4 进行容器交互界面"></a>1.4 进行容器交互界面</h2><figure class="highlight docker"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker exec -it containerID/name /bin/sh</span><br></pre></td></tr></table></figure>
 
     </div>
@@ -323,10 +326,10 @@
       <div class="popular-posts-title"><a href="\2023\12\16\Defi中的价格操纵攻击\" rel="bookmark">Defi中的价格操纵攻击</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\07\Defi安全-Monox攻击事件Foundry复现\" rel="bookmark">Defi安全-Monox攻击事件Foundry复现</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\23\Defi安全-Monox攻击事件分析\" rel="bookmark">Defi安全--Monox攻击事件分析--phalcon+etherscan</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\23\Defi安全-Monox攻击事件分析\" rel="bookmark">Defi安全--Monox攻击事件分析--phalcon+etherscan</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\07\Defi安全-Monox攻击事件Foundry复现\" rel="bookmark">Defi安全-Monox攻击事件Foundry复现</a></div>
     </li>
   </ul>
 
@@ -440,7 +443,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -538,7 +541,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:03</span>
+    <span title="Reading time total">1:04</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

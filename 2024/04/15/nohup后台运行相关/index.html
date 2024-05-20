@@ -143,7 +143,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">23</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">24</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -298,7 +298,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="1-nohup和-amp"><a href="#1-nohup和-amp" class="headerlink" title="1. nohup和&amp;"></a>1. nohup和&amp;</h2><p>用途：ssh连接linux服务器的时候，终端可能会断开，如何让程序在服务器后台一直运行</p>
+        <h2 id="1-nohup和"><a href="#1-nohup和" class="headerlink" title="1. nohup和&amp;"></a>1. nohup和&amp;</h2><p>用途：ssh连接linux服务器的时候，终端可能会断开，如何让程序在服务器后台一直运行</p>
 <ul>
 <li>nohup：nohup运行指令，使程序可以忽略刮起继续运行</li>
 <li>&amp;：让程序在后台运行，一般和nohup一起用</li>
@@ -307,20 +307,42 @@
 <p>nohup：是让命令永久的执行下去，和用户终端没有关系，&amp;是命令后台运行的意思</p>
 <h2 id="2-输出重定向"><a href="#2-输出重定向" class="headerlink" title="2. 输出重定向"></a>2. 输出重定向</h2><p>命令在后台运行的时候，可以把输出重定向到某个文件中，相当于一个日志文件，记录运行过程中的数据</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup command &gt; output.file 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+
 <p>输出的内容保存到output.file中</p>
 <p>0 – stdin (standard input)，1 – stdout (standard output)，2 – stderr (standard error) ；<br>2&gt;&amp;1是将标准错误（2）重定向到标准输出（&amp;1），标准输出（&amp;1）再被重定向输入到out.file文件中。</p>
 <h2 id="3-nohup后台相关"><a href="#3-nohup后台相关" class="headerlink" title="3.nohup后台相关"></a>3.nohup后台相关</h2><ol>
 <li>jobs -l</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jobs -l</span><br><span class="line">//查看当前终端生效的nohup程序，其它终端的命令，利用ps</span><br></pre></td></tr></table></figure>
-<ol>
+
+<ol start="2">
 <li>ps查看后台nohup</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ps -aux | grep &lt;test&gt;</span><br><span class="line">//查看后台运行的nohup，以及自己运行的程序</span><br></pre></td></tr></table></figure>
-<ol>
+
+<ol start="3">
 <li>kill关闭对应nohup</li>
 </ol>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">kill -9 &lt;进程号&gt;</span><br><span class="line">//关掉对应的进程</span><br><span class="line">netstat -ap | grep port</span><br><span class="line">//通过对应的端口，查看相应的进程</span><br><span class="line">netstat -nap | grep PID</span><br><span class="line">//通过相应的进城ID,查看其占用的端口</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     </div>
 
@@ -432,7 +454,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-nohup%E5%92%8C-amp"><span class="nav-number">1.</span> <span class="nav-text">1. nohup和&amp;</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%BE%93%E5%87%BA%E9%87%8D%E5%AE%9A%E5%90%91"><span class="nav-number">2.</span> <span class="nav-text">2. 输出重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-nohup%E5%90%8E%E5%8F%B0%E7%9B%B8%E5%85%B3"><span class="nav-number">3.</span> <span class="nav-text">3.nohup后台相关</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-nohup%E5%92%8C"><span class="nav-number">1.</span> <span class="nav-text">1. nohup和&amp;</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%BE%93%E5%87%BA%E9%87%8D%E5%AE%9A%E5%90%91"><span class="nav-number">2.</span> <span class="nav-text">2. 输出重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-nohup%E5%90%8E%E5%8F%B0%E7%9B%B8%E5%85%B3"><span class="nav-number">3.</span> <span class="nav-text">3.nohup后台相关</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -448,7 +470,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -546,7 +568,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:03</span>
+    <span title="Reading time total">1:04</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
