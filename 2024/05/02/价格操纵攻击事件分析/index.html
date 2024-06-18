@@ -146,7 +146,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">24</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">23</span></a>
 
   </li>
         <li class="menu-item menu-item-papersummary">
@@ -320,12 +320,10 @@
 <li>攻击者调用<code>SellToken: Router v2</code>的<code>ShortStart()</code>函数，用13.37个WBNB去short减少SellTokenrouter中Selltoken的数量，看一下<code>ShortStart()</code>函数的源码：</li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">function ShortStart(address coin,address addr,uint terrace)payable public &#123;</span><br><span class="line">    address bnbOrUsdt=mkt.getPair(coin);</span><br><span class="line">    require(terraces[terrace]!=address(0) &amp;&amp; tokenPrice[addr][coin] &gt; 0);</span><br><span class="line">    require(coin != address(0));</span><br><span class="line">    require(bnbOrUsdt == _WBNB || bnbOrUsdt==_USDT);</span><br><span class="line">    require(!getNewTokenPrice(addr,coin,bnbOrUsdt) &amp;&amp; block.timestamp &gt; tokenPriceTime[addr][coin]);</span><br><span class="line">    uint bnb=msg.value;</span><br><span class="line">    uint tos=getToken2Price(coin,bnbOrUsdt,mkt.balanceOf(coin))/10;</span><br><span class="line">    require(Short[addr][coin].bnb+bnb &lt;= tos);</span><br><span class="line">    Short[addr][coin].token=bnbOrUsdt;</span><br><span class="line">    Short[addr][coin].coin=coin;</span><br><span class="line">    Short[addr][coin].bnb+=bnb*98/100;</span><br><span class="line">    tokenPrice[addr][coin]=0;</span><br><span class="line">    uint newTokenValue=getTokenPrice(coin,bnbOrUsdt,bnb*98/100);</span><br><span class="line">    Short[addr][coin].tokenPrice+=newTokenValue;</span><br><span class="line">    Short[addr][coin].time=block.timestamp;</span><br><span class="line">    address[] memory add=mySells[addr].coin;</span><br><span class="line">    bool isCoin;</span><br><span class="line">    for(uint i=0;i&lt;add.length;i++)&#123;</span><br><span class="line">         if(add[i]==coin)&#123;</span><br><span class="line">           isCoin=true;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    if(!isCoin)&#123;</span><br><span class="line">       mySells[addr].mnu++;</span><br><span class="line">       mySells[addr].coin.push(coin);</span><br><span class="line">    &#125;</span><br><span class="line">    sum+=bnb;</span><br><span class="line">    payable(mkt).transfer(bnb*97/100);</span><br><span class="line">    if(bnbOrUsdt ==_USDT)&#123;</span><br><span class="line">       uint usdts=IERC20(_USDT).balanceOf(address(mkt));</span><br><span class="line">       mkt.buy(_WBNB,_USDT,bnb*97/100);</span><br><span class="line">      if(IERC20(_USDT).balanceOf(address(mkt))&gt;usdts)&#123;</span><br><span class="line">         uint ut=IERC20(_USDT).balanceOf(address(mkt))-usdts;</span><br><span class="line">         mkt.buy(_USDT,coin,ut);</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        mkt.buy(bnbOrUsdt,coin,bnb*97/100);</span><br><span class="line">    &#125;</span><br><span class="line">    payable (owner()).transfer(bnb*2/100);</span><br><span class="line">    payable (terraces[terrace]).transfer(bnb/100);</span><br><span class="line">&#125;</span><br><span class="line">//通过getToken2Price()和getTokenPrice()函数获得对应代币的价格，后面细看</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>接下来攻击者调用Pancakeswap Router的swapExactETHForTokensSupportingFeeOnTransferTokens()函数去操纵SELLC Token的价格，这里攻击者用大量的SELLC去兑换WBNB，看一下对应的代码</li>
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">function getAmountsOut(address factory, uint amountIn, address[] memory path) internal view returns (uint[] memory amounts) &#123;</span><br><span class="line">        require(path.length &gt;= 2, &#x27;PancakeLibrary: INVALID_PATH&#x27;);</span><br><span class="line">        amounts = new uint[](path.length);</span><br><span class="line">        amounts[0] = amountIn;</span><br><span class="line">        for (uint i; i &lt; path.length - 1; i++) &#123;</span><br><span class="line">            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);</span><br><span class="line">            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset</span><br><span class="line">function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) &#123;</span><br><span class="line">        require(amountIn &gt; 0, &#x27;PancakeLibrary: INSUFFICIENT_INPUT_AMOUNT&#x27;);</span><br><span class="line">        require(reserveIn &gt; 0 &amp;&amp; reserveOut &gt; 0, &#x27;PancakeLibrary: INSUFFICIENT_LIQUIDITY&#x27;);</span><br><span class="line">        uint amountInWithFee = amountIn.mul(9975);</span><br><span class="line">        uint numerator = amountInWithFee.mul(reserveOut);</span><br><span class="line">        uint denominator = reserveIn.mul(10000).add(amountInWithFee);</span><br><span class="line">        amountOut = numerator / denominator;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>这里可以看到，直接通过自动做市商对应的价格攻击计算相应的代币价格，可以兑换更多的WBNB。</li>
 </ul>
@@ -339,19 +337,19 @@
   <div class="popular-posts-header">Related Posts</div>
   <ul class="popular-posts">
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\21\Defi安全-Sentiment-Protocol攻击事件分析\" rel="bookmark">Defi安全--Sentiment Protocol攻击事件分析</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\12\Defi安全--Zunami Protocol攻击事件分析\" rel="bookmark">Defi安全--Zunami Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
       <div class="popular-posts-title"><a href="\2024\02\28\Defi安全-Thunder-Brawl攻击事件分析\" rel="bookmark">Defi安全-Thunder Brawl攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
+      <div class="popular-posts-title"><a href="\2024\01\21\Defi安全-Sentiment-Protocol攻击事件分析\" rel="bookmark">Defi安全--Sentiment Protocol攻击事件分析</a></div>
     </li>
     <li class="popular-posts-item">
-      <div class="popular-posts-title"><a href="\2024\01\16\Defi安全-Orion-Protocol攻击事件分析\" rel="bookmark">Defi安全--Orion Protocol攻击事件分析</a></div>
+      <div class="popular-posts-title"><a href="\2023\12\19\EGD价格操纵攻击原理分析\" rel="bookmark">EGD价格操纵攻击原理分析--phalcon+etherscan</a></div>
     </li>
   </ul>
 
@@ -468,7 +466,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">23</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -566,7 +564,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">1:04</span>
+    <span title="Reading time total">1:03</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
