@@ -1339,7 +1339,74 @@ x_1*x_2 = k</script><p>最后的k值校验只要满足：</p>
   <entry>
     <title>LCXHacker热钱包攻击事件洗钱分析</title>
     <url>/2025/01/13/LCXHacker%E7%83%AD%E9%92%B1%E5%8C%85%E6%94%BB%E5%87%BB%E4%BA%8B%E4%BB%B6%E6%B4%97%E9%92%B1%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h2 id="1-LCXHacker热钱包攻击事件反洗钱分析"><a href="#1-LCXHacker热钱包攻击事件反洗钱分析" class="headerlink" title="1. LCXHacker热钱包攻击事件反洗钱分析"></a>1. LCXHacker热钱包攻击事件反洗钱分析</h2>]]></content>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><h2 id="LCXHacker热钱包攻击事件反洗钱分析"><a href="#LCXHacker热钱包攻击事件反洗钱分析" class="headerlink" title="LCXHacker热钱包攻击事件反洗钱分析"></a>LCXHacker热钱包攻击事件反洗钱分析</h2><h3 id="1-流入资金分析"><a href="#1-流入资金分析" class="headerlink" title="1. 流入资金分析"></a>1. 流入资金分析</h3><p>黑客地址：<code>0x165402279f2c081c54b00f0e08812f3fd4560a05</code></p>
+<p>分析LCXHacker的洗钱流程，先利用Blocksec的反洗钱工具<code>MetaSleuth</code>分析该事件，先查看黑客流入的资金</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131544837.png" alt="image-20250113154403748"></p>
+<p>将其分析结果与Etherscan上交易历史进行对比，观察外部交易和Token transfer ，发现一致：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131546052.png" alt="image-20250113154633584"></p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131546349.png" alt="image-20250113154649786"></p>
+<h2 id="2-流出资金分析"><a href="#2-流出资金分析" class="headerlink" title="2. 流出资金分析"></a>2. 流出资金分析</h2><p>当黑客获利了多种类型代币的时候，如何进行高效的反洗钱追踪？感觉现有的工具效果并不好，应该建立怎样的模型进行表征？</p>
+<p>还是先通过<code>MetaSleuth</code>的大致资金流向，再结合Etherscan进行分析，这里看到很多都是和DEX进行交互，可能只是对多类型的代币进行了兑换，会导致很多无用的交易</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131553606.png" alt="image-20250113155306111"></p>
+<p>先Token Transfer进行一步一步分析，查看一下交易详情：</p>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131612040.png" alt="image-20250113161247298"></p>
+<ol>
+<li>一最开始的一笔交易为例，在Etherscan可以看到相应的代币和ETH转移记录：</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131618237.png" alt="image-20250113161849382"></p>
+<p>这些交易太多复杂了，两种方式对这样的地址和智能合约的交易进行分析：</p>
+<ul>
+<li><p>感觉可以建立一个代币模型，重点分析特定账户的代币流入和流出</p>
+<ul>
+<li>如果我们把所有的内部交易和ERC20的交易都获取后，分析每个账户的流入和流出</li>
+<li>0x1650把所有获利的USDC在Token事件中，转移到0x2057</li>
+<li>分析所有交易中0x2057的流入，发现主要是1102ETH + 可能若干的USDT</li>
+<li>最后这笔资金转入0x1111，转入0x1650黑客，最终结果只是相当于把USDC兑换成ETH</li>
+</ul>
+</li>
+<li><p>是否可以获取到交易的智能合约代码，对智能合约代码进行分析，分析出代码交换行为的逻辑 ？</p>
+</li>
+</ul>
+<p>剩下的三笔交易都是代币兑换交易，将部分的LCX，全部的SAND，全部的QNT进行兑换成ETH</p>
+<p>这里存在第二个问题，<code>这里只兑换部分的LCX？是否对反洗钱追踪的结果有什么影响？</code></p>
+<ol start="2">
+<li>接着对其它的交易记录进行分析</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131642016.png" alt="image-20250113164248787"></p>
+<ul>
+<li>ChainLink Token全部兑换成ETH</li>
+<li>部分EURe Token兑换成ETH</li>
+<li>部分LCX兑换成ETH</li>
+<li>全部MKR兑换成ETH</li>
+<li>全部的ENJ兑换成ETH</li>
+</ul>
+<ol start="3">
+<li>接着看剩下的交易历史</li>
+</ol>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131649003.png" alt="image-20250113164921592"></p>
+<ul>
+<li>这里前四个交易也都是将LCX兑换成ETH，但在第一个兑换交易结合，攻击者就进行Tornado.Cash存款，1570，随后又间隔着陆续存入120ETH</li>
+<li>随后第五个交易也是LCX兑换ETH，随后将88.89ETH+5251192LCX全部转账给0x5c41</li>
+</ul>
+<p>这里我们可以看到攻击者在大量的交易中只进行了三个步骤：</p>
+<ul>
+<li>将绝大数Token兑换成ETH</li>
+<li>存入Tornado.Cash</li>
+<li>转移剩余资产到0x5c41</li>
+</ul>
+<h2 id="3-洗钱路径分析"><a href="#3-洗钱路径分析" class="headerlink" title="3. 洗钱路径分析"></a>3. 洗钱路径分析</h2><p>接着对0X5C41的交易历史进行分析</p>
+<ul>
+<li>直接将ETH转账到0x2d06</li>
+<li>这里通过UniswapV3将LCX兑换成ETH，一个交易示例如下：，这个交易过程和前述就存在一定区别，如果用统一的抽象模型对这样的代币模型进行表征？</li>
+</ul>
+<p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131713531.png" alt="image-20250113171339362"></p>
+<ul>
+<li>这些LCX全部兑换成ETH，并转移到0x2d06中</li>
+</ul>
+<p>接着对0x2d06的交易历史进行分析，全部转入了Tornado.Cash</p>
+<h2 id="4-总结分析"><a href="#4-总结分析" class="headerlink" title="4. 总结分析"></a>4. 总结分析</h2><p><img src="https://gitee.com/Emmanuel_scb/blogimage/raw/master/img/202501131723250.png" alt="image-20250113172348727"></p>
+<p>这样攻击事件洗钱示例，并不复杂，但是如果用现有的工具BlockchainSpider进行分析的话：却有上百万条的交易记录，感觉太过于复杂。</p>
+]]></content>
       <categories>
         <category>Defi安全</category>
       </categories>
